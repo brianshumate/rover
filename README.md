@@ -49,7 +49,7 @@ Available commands are:
     vault      Execute Vault related commands and store output
 ```
 
-Otherwise, you can consult the [Go documentation for the Go tools](https://golang.org/doc/install#install) for you particular platform, and _go_ from there!
+Otherwise, you can consult the [Go documentation for the Go tools](https://golang.org/doc/install#install) for your particular platform, and _go_ from there!
 
 If you visit `$GOPATH/src/github/brianshumate/rover` you can build releases of the `rover` binary for different platforms by typing `make`.
 
@@ -293,9 +293,7 @@ Investigation into simplified meta commands and easy one-liners is also on the r
 
 ## Who
 
-### Brian Shumate
-
-[@brianshumate](https://github.com/brianshumate)
+### Brian Shumate [@brianshumate](https://github.com/brianshumate)
 
 ### Contributors
 
