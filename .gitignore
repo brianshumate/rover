@@ -1,0 +1,10 @@
+.DS_Store
+darwin-amd64
+freebsd-amd64
+linux-amd64
+output
+tests.xml
+vet.report
+rover
+rover-waves-*
+waves
