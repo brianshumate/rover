@@ -31,15 +31,27 @@ A CLI tool called `rover` that is written in [Go](https://golang.org/)
 
 ## Building
 
-If you have an established Go development environment set up, then building `rover` is 3 steps:
+If you have a Go environment established, you can install and run the
+`rover` command like this:
 
 ```
-go get github.com/brianshumate/rover
-cd $GOPATH/src/github.com/brianshumate/rover
-make
+$ go get github.com/brianshumate/rover
+$ rover
+Usage: rover [--version] [--help] <command> [<args>]
+
+Available commands are:
+    archive    Archive rover data into zip file
+    consul     Execute Consul related commands and store output
+    info       Output installation information
+    nomad      Execute Nomad related commands and store output
+    system     Execute system commands and store output
+    upload     Uploads rover archive file to S3 bucket
+    vault      Execute Vault related commands and store output
 ```
 
 Otherwise, you can consult the [Go documentation for the Go tools](https://golang.org/doc/install#install) for you particular platform, and _go_ from there!
+
+If you visit `$GOPATH/src/github/brianshumate/rover` you can build releases of the `rover` binary for different platforms by typing `make`.
 
 The project currently builds binaries for FreeBSD, Linux, and macOS by default; they're located in the following subdirectories of `pkg/` after a successful build:
 
@@ -180,6 +192,10 @@ The following system commands are run when Darwin is the detected system:
 
 #### Darwin File Contents
 
+- `/etc/fstab`
+- `/etc/hosts`
+- `/etc/resolv.conf`
+
 #### FreeBSD Commands
 
 The following system commands are run when FreeBSD is the detected system:
@@ -194,8 +210,11 @@ The following system commands are run when FreeBSD is the detected system:
 
 #### FreeBSD File Contents
 
-- `cat /var/log/messages`
-- `cat etc/rc.conf`
+- `/etc/fstab`
+- `/etc/hosts`
+- `/etc/resolv.conf`
+- `/var/log/messages`
+- `/etc/rc.conf`
 
 #### Linux Commands
 
@@ -229,7 +248,23 @@ Information from distributions which use systemd:
 
 #### Linux File Contents
 
+- `/etc/fstab`
+- `/etc/hosts`
+- `/etc/resolv.conf`
+- `/var/log/daemon`
+- `/var/log/debug`
+- `/etc/security/limits.conf`
+- `/var/log/kern.log`
+- `/var/log/messages`
+- `/var/log/syslog`
+- `/var/log/system.log`
+
 #### Consul Commands
+
+- `consul version`
+- `consul info`
+- `consul members`
+- `consul operator raft list-peers`
 
 #### Nomad Commands
 
@@ -237,6 +272,11 @@ Information from distributions which use systemd:
 - `nomad status`
 
 #### Vault Commands
+
+- `vault version`
+- `vault audit-list`
+- `vault auth -methods`
+- `vault status`
 
 #### Command Combinations
 
@@ -249,7 +289,7 @@ You can chain commands together to build a zip file with your desired contents l
 ./darwin-amd64/rover archive
 ```
 
-Investigation into simplified meta commands and easy one-liners is also ongoing for the roadmap.
+Investigation into simplified meta commands and easy one-liners is also on the roadmap.
 
 ## Who
 

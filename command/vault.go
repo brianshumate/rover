@@ -63,6 +63,7 @@ func (c *VaultCommand) Run(_ []string) int {
 
 		internal.Dump("vault", "vault_version", "vault", "version")
 		internal.Dump("vault", "vault_audit_list", "vault", "audit-list")
+		internal.Dump("vault", "vault_auth_methods", "vault", "auth", "-methods")
 		internal.Dump("vault", "vault_mounts", "vault", "mounts")
 		internal.Dump("vault", "vault_status", "vault", "status")
 
