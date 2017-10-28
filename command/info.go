@@ -33,6 +33,8 @@ func (c *InfoCommand) Run(_ []string) int {
 	// Internal logging
 	internal.LogSetup()
 
+	// TODO: Add means to gather additional factoids (servers running/software versions, etc.) here...
+
 	columns := []string{}
 	kvs := map[string]string{"OS": runtime.GOOS, "Architecture": runtime.GOARCH}
 	for k, v := range kvs {
