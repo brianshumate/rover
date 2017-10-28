@@ -41,7 +41,10 @@ type UploadCommand struct {
 func (c *UploadCommand) Help() string {
 	helpText := `
 Usage: rover upload [options]
-	Upload an archive to S3 bucket
+  Upload an archive file to S3 bucket
+
+General Options:
+  -file="rover-host-20171028110212.zip"		Specify the filename to upload.
 `
 
 	return strings.TrimSpace(helpText)

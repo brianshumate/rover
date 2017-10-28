@@ -27,7 +27,7 @@ type ArchiveCommand struct {
 func (c *ArchiveCommand) Help() string {
 	helpText := `
 Usage: rover archive
-	Archive the command output directory into a zip file with this filename format: rover-<hostname>-
+	Archive the command output directory into a zip file with this filename format: rover-<hostname>-<timestamp>.zip
 
 `
 

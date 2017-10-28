@@ -51,7 +51,7 @@ Available commands are:
 
 Otherwise, you can consult the [Go documentation for the Go tools](https://golang.org/doc/install#install) for your particular platform, and _go_ from there!
 
-If you visit `$GOPATH/src/github/brianshumate/rover` you can build releases of the `rover` binary for different platforms by typing `make`.
+If you change into the `$GOPATH/src/github.com/brianshumate/rover` directory, you can build `rover` binaries for different platforms by typing `make`.
 
 The project currently builds binaries for FreeBSD, Linux, and macOS by default; they're located in the following subdirectories of `pkg/` after a successful build:
 
@@ -69,7 +69,7 @@ The project currently builds binaries for FreeBSD, Linux, and macOS by default; 
 
 If you'd prefer to make a development build for just your own host architecture and OS, you can use `make dev` and the `rover` binary will also be located in `./bin` after successful compiliation.
 
-## Running
+## Running a Local Dev Build
 
 It's a single binary, `rover` with built in help:
 
@@ -87,9 +87,9 @@ Available commands are:
     vault      Execute Vault related commands and store their output
 ```
 
-###  Environment Variables
+###  Configuration
 
-Currently all configuration is specified as flags or set as environment variables. For detailed help, including available flags, use `rover <command> --help`.
+Currently all configuration is specified with flags or set as environment variables. For detailed help, including available flags, use `rover <command> --help`.
 
 Here are the environment variables:
 
