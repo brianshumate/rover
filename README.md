@@ -19,7 +19,7 @@ The types of information `rover` gathers includes:
 - Application or service specifc command output
 - Application or service specific logging
 
-All of the stored information can then be packaged up into a zip file named for the host, and shared however you prefer. Soon, `rover` will also support shipping the zip file to destinations like an S3 bucket.
+All of the stored information can then be packaged up into a zip file named for the host, and shared however you prefer. Currently, `rover` supports shipping the zip file to an S3 bucket.
 
 ## Why?
 
@@ -96,8 +96,21 @@ Here are the environment variables:
 - `AWS_ACCESS_KEY_ID`: Access key ID for AWS
 - `AWS_SECRET_ACCESS_KEY`: Secret access key ID for AWS
 - `AWS_BUCKET`: Name of the S3 bucket
-- `AWS_PREFIX`: Filename prefix
+- `AWS_PREFIX`: Bucket prefix
 - `AWS_REGION`: AWS region for the bucket
+
+The `upload` command takes a single flag `-file` for specifying the name of the archive file.
+
+Here is an example run:
+
+```
+$ rover system && rover archive
+Executed system commands and stored output
+Data archived in rover-waves-20171028110212.zip
+
+$ rover upload -file=rover-waves-20171028110212.zip
+Success! Uploaded rover-waves-20171028110212.zip
+```
 
 ## Internals
 

@@ -55,7 +55,7 @@ func (c *ArchiveCommand) Run(_ []string) int {
 	c.HostName = internal.GetHostName()
 	c.TargetFile = "rover-%s-%s.zip"
 	t := time.Now().Format("20060102150405")
-	zipFileName := fmt.Sprintf(c.TargetFile, c.HostName, t)
+	archiveFileName := fmt.Sprintf(c.TargetFile, c.HostName, t)
 
 	defer func() {
 		// Remove the source directory after zip file created
@@ -66,14 +66,14 @@ func (c *ArchiveCommand) Run(_ []string) int {
 		}
 	}()
 
-	outPath := filepath.Join(".", zipFileName)
+	outPath := filepath.Join(".", archiveFileName)
 	err := zip.ArchiveFile(fmt.Sprintf("%s", c.HostName), outPath, nil)
 	if err != nil {
 		log.Println("[e] Could not archive data!")
 		panic(err)
 	}
 
-	out := fmt.Sprintf("Data archived in %s", zipFileName)
+	out := fmt.Sprintf("Data archived in %s", archiveFileName)
 	c.UI.Output(out)
 
 	return 0

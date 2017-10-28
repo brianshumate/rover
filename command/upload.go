@@ -4,13 +4,13 @@ package command
 
 import (
 	"bytes"
+	"flag"
 	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/brianshumate/rover/internal"
-	// "github.com/aws/aws-sdk-go/aws/awsutil"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/brianshumate/rover/internal"
 	"github.com/mitchellh/cli"
 	"github.com/ryanuber/columnize"
 	"log"
@@ -19,16 +19,22 @@ import (
 	"strings"
 )
 
+const (
+	archiveFileDefault = "rover.zip"
+	archiveFileDescr   = "Archive filename"
+)
+
 // UploadCommand describes info upload related fields
 type UploadCommand struct {
-	AccessKey string
-	Bucket    string
-	HostName  string
-	Prefix    string
-	Region    string
-	SecretKey string
-	Token     string
-	UI        cli.Ui
+	AccessKey   string
+	ArchiveFile string
+	Bucket      string
+	HostName    string
+	Prefix      string
+	Region      string
+	SecretKey   string
+	Token       string
+	UI          cli.Ui
 }
 
 // Help output
@@ -42,7 +48,14 @@ Usage: rover upload [options]
 }
 
 // Run command
-func (c *UploadCommand) Run(_ []string) int {
+func (c *UploadCommand) Run(args []string) int {
+
+	cmdFlags := flag.NewFlagSet("upload", flag.ContinueOnError)
+	cmdFlags.Usage = func() { c.UI.Output(c.Help()) }
+	cmdFlags.StringVar(&c.ArchiveFile, "file", archiveFileDefault, archiveFileDescr)
+	if err := cmdFlags.Parse(args); err != nil {
+		return 1
+	}
 
 	// Internal logging
 	internal.LogSetup()
@@ -56,14 +69,13 @@ func (c *UploadCommand) Run(_ []string) int {
 
 	log.Printf("[i] Hello from the rover upload module on %s!", c.HostName)
 
-	if len(c.AccessKey) == 0 || len(c.SecretKey) == 0 || len(c.Bucket) == 0 || len(c.Prefix) == 0 || len(c.Region) == 0 {
+	if len(c.AccessKey) == 0 || len(c.SecretKey) == 0 || len(c.Bucket) == 0 || len(c.Region) == 0 {
 		log.Println("[e] Missing one of the required AWS environment variables")
 		columns := []string{}
-		kvs := map[string]string{"AWS_ACCESS_KEY_ID": "Access key ID for AWS", "AWS_SECRET_ACCESS_KEY": "Secret access key ID for AWS", "AWS_BUCKET": " Name of the S3 bucket", "AWS_PREFIX": "Filename prefix", "AWS_REGION": "AWS region for the bucket"}
+		kvs := map[string]string{"AWS_ACCESS_KEY_ID": "Access key ID for AWS", "AWS_SECRET_ACCESS_KEY": "Secret access key ID for AWS", "AWS_BUCKET": " Name of the S3 bucket", "AWS_REGION": "AWS region for the bucket"}
 		for k, v := range kvs {
 			columns = append(columns, fmt.Sprintf("%s: | %s ", k, v))
 		}
-
 		envVars := columnize.SimpleFormat(columns)
 		out := fmt.Sprintf("One or more upload related environment variables not set; please ensure that the following environment variables are set:\n\n%s", envVars)
 		c.UI.Error(out)
@@ -72,17 +84,12 @@ func (c *UploadCommand) Run(_ []string) int {
 	}
 
 	creds := credentials.NewStaticCredentials(c.AccessKey, c.SecretKey, c.Token)
-
 	cfg := aws.NewConfig().WithRegion(c.Region).WithCredentials(creds)
-
 	svc := s3.New(session.New(), cfg)
 
-	// XXX: Get proper filename
-	targetFile := "bleurgh.zip"
-
-	file, err := os.Open(targetFile)
+	file, err := os.Open(c.ArchiveFile)
 	if err != nil {
-		out := fmt.Sprintf("[e] Error opening file: %s!", err)
+		out := fmt.Sprintf("Error opening archive file! Error: %v", err)
 		c.UI.Error(out)
 		log.Println(out)
 		os.Exit(-1)
@@ -92,7 +99,7 @@ func (c *UploadCommand) Run(_ []string) int {
 		// Close after zip file is successfully uploaded
 		err = file.Close()
 		if err != nil {
-			out := fmt.Sprintf("[e] Could not close file: %s! Error: %v", targetFile, err)
+			out := fmt.Sprintf("Could not close file %s! Error: %v", c.ArchiveFile, err)
 			c.UI.Error(out)
 			os.Exit(-1)
 		}
@@ -100,7 +107,7 @@ func (c *UploadCommand) Run(_ []string) int {
 
 	fileInfo, err := file.Stat()
 	if err != nil {
-		out := fmt.Sprintf("[e] Could not stat file: %s! Error: %v", targetFile, err)
+		out := fmt.Sprintf("Could not stat file %s! Error: %v", c.ArchiveFile, err)
 		c.UI.Error(out)
 		os.Exit(-1)
 	}
@@ -111,14 +118,14 @@ func (c *UploadCommand) Run(_ []string) int {
 		// Read from the buffer
 		_, err = file.Read(buffer)
 		if err != nil {
-			out := fmt.Sprintf("[e] Could not read buffer - error: %s", err)
+			out := fmt.Sprintf("Could not read buffer! Error: %s", err)
 			log.Println(out)
 			c.UI.Error(out)
 			os.Exit(-1)
 		}
 	}()
 
-	path := c.Prefix + file.Name()
+	path := fmt.Sprintf("%s/%s", c.Prefix, file.Name())
 	fileBytes := bytes.NewReader(buffer)
 	// For more than application/zip later
 	fileType := http.DetectContentType(buffer)
@@ -132,12 +139,10 @@ func (c *UploadCommand) Run(_ []string) int {
 
 	resp, err := svc.PutObject(params)
 	if err != nil {
-		out := fmt.Sprintf("Bad response from AWS: %s - %s", err, resp)
+		out := fmt.Sprintf("Bad response from AWS! Response: %s - %s", err, resp)
 		c.UI.Error(out)
 	}
-	// out := fmt.Sprintf("[i] AWS response: %s", awsutil.StringValue(resp))
-
-	out := fmt.Sprintf("I would be uploading %s and my path is %s...", targetFile, path)
+	out := fmt.Sprintf("Success! Uploaded %s", file.Name())
 
 	c.UI.Output(out)
 
