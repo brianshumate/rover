@@ -142,10 +142,10 @@ func (c *UploadCommand) Run(args []string) int {
 
 	resp, err := svc.PutObject(params)
 	if err != nil {
-		out := fmt.Sprintf("Bad response from AWS! Response: %s - %s", err, resp)
+		out := fmt.Sprintf("Error: %s from AWS! Response: %s", err, resp)
 		c.UI.Error(out)
 	}
-	out := fmt.Sprintf("Success! Uploaded %s to S3 bucket %s", file.Name(), c.Bucket)
+	out := fmt.Sprintf("Success! Uploaded s3://%s/%s", c.Bucket, file.Name())
 
 	c.UI.Output(out)
 
