@@ -15,12 +15,16 @@ import (
 	"syscall"
 )
 
-// Util describes common zip file fields
-type Util struct {
-	HostName   string
-	OS         string
-	LogFile    string
-	TargetFile string
+// Internal describes internal fields which support the internal commands
+// that are required of other commands
+type Internal struct {
+	ConsulVersion string
+	HostName      string
+	NomadVersion  string
+	OS            string
+	LogFile       string
+	TargetFile    string
+	VaultVersion  string
 }
 
 // CheckProc checks for a running process by name with pgrep or ps
@@ -58,12 +62,40 @@ func CheckProc(name string) (bool, string) {
 	return true, pid
 }
 
+// CheckHashiVersion attempts to locate HashiCorp runtime tools and get
+// their versions - Consul has slightly different version output style so
+// it must be handled differently
+func CheckHashiVersion(name string) string {
+	active, pid := CheckProc(name)
+	if active {
+		log.Printf("[i] %s processs identified as %s", name, pid)
+		path, err := exec.LookPath(name)
+		if err != nil {
+			log.Printf("[i] Did not find a %s binary in PATH", name)
+		}
+		if name == "consul" {
+			version, err := exec.Command("/bin/sh", "-c", fmt.Sprintf("%s version | head -n 1 | awk '{print $2}'", path)).Output()
+			if err != nil {
+				log.Printf("[e] Error executing %s binary! Error: %v", name, err)
+			}
+			return string(version)
+		} else if name == "nomad" || name == "vault" {
+			version, err := exec.Command("/bin/sh", "-c", fmt.Sprintf("%s version | awk '{print $2}'", path)).Output()
+			if err != nil {
+				log.Printf("[e] Error executing %sl binary! Error: %v", name, err)
+			}
+			return string(version)
+		}
+	}
+	return "ENOVERSION"
+}
+
 // Dump takes a type, output filename and command, which it then executes
 // while also writing stdout + stderr to a file named for the command
 // Inspired by debug-ninja! (https://github.com/fprimex/debug-ninja)
 func Dump(dumpType string, outfile string, cmdName string, args ...string) int {
 
-	s := Util{HostName: GetHostName(),
+	s := Internal{HostName: GetHostName(),
 		TargetFile: "%s/%s/%s.txt"}
 
 	path, err := exec.LookPath(cmdName)
@@ -165,7 +197,7 @@ func HTTPCmdCheck() string {
 // some rudimentary rover self-logging ye olde schoole action
 func LogSetup() {
 
-	s := Util{HostName: GetHostName(), LogFile: "rover.log"}
+	s := Internal{HostName: GetHostName(), LogFile: "rover.log"}
 	logPath := filepath.Join(fmt.Sprintf("%s", s.HostName), "log")
 
 	if err := os.MkdirAll(logPath, os.ModePerm); err != nil {

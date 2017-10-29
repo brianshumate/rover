@@ -15,7 +15,7 @@ func main() {
 		ErrorWriter: os.Stderr,
 	}
 
-	c := cli.NewCLI("rover", "0.0.1")
+	c := cli.NewCLI("rover", "0.0.3")
 	c.Args = os.Args[1:]
 
 	c.Commands = map[string]cli.CommandFactory{

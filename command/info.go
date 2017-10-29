@@ -13,9 +13,12 @@ import (
 
 // InfoCommand describes info dashboard related fields
 type InfoCommand struct {
-	HostName string
-	Uptime   string
-	UI       cli.Ui
+	ConsulVersion string
+	HostName      string
+	NomadVersion  string
+	Uptime        string
+	UI            cli.Ui
+	VaultVersion  string
 }
 
 // Help output
@@ -33,14 +36,29 @@ func (c *InfoCommand) Run(_ []string) int {
 	// Internal logging
 	internal.LogSetup()
 
-	// TODO: Add means to gather additional factoids (servers running/software versions, etc.) here...
+	c.ConsulVersion = internal.CheckHashiVersion("consul")
+	c.NomadVersion = internal.CheckHashiVersion("nomad")
+	c.VaultVersion = internal.CheckHashiVersion("vault")
 
-	columns := []string{}
-	kvs := map[string]string{"OS": runtime.GOOS, "Architecture": runtime.GOARCH}
-	for k, v := range kvs {
-		columns = append(columns, fmt.Sprintf("%s: | %s ", k, v))
+	infoData := map[string]string{"OS": runtime.GOOS,
+		"Architecture": runtime.GOARCH}
+
+	if c.ConsulVersion != "ENOVERSION" {
+		infoData["Consul version"] = c.ConsulVersion
 	}
 
+	if c.NomadVersion != "ENOVERSION" {
+		infoData["Nomad version"] = c.NomadVersion
+	}
+
+	if c.VaultVersion != "ENOVERSION" {
+		infoData["Vault version"] = c.VaultVersion
+	}
+
+	columns := []string{}
+	for k, v := range infoData {
+		columns = append(columns, fmt.Sprintf("%s: | %s ", k, v))
+	}
 	data := columnize.SimpleFormat(columns)
 	out := fmt.Sprintf("Handy factoids about this system:\n\n%s", data)
 	c.UI.Output(out)
