@@ -63,6 +63,7 @@ func (c *UploadCommand) Run(args []string) int {
 	// Internal logging
 	internal.LogSetup()
 
+	c.HostName = internal.GetHostName()
 	c.AccessKey = os.Getenv("AWS_ACCESS_KEY_ID")
 	c.SecretKey = os.Getenv("AWS_SECRET_ACCESS_KEY")
 	c.Bucket = os.Getenv("AWS_BUCKET")

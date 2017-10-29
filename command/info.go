@@ -9,6 +9,7 @@ import (
 	"github.com/ryanuber/columnize"
 	"runtime"
 	"strings"
+	"time"
 )
 
 // InfoCommand describes info dashboard related fields
@@ -36,12 +37,15 @@ func (c *InfoCommand) Run(_ []string) int {
 	// Internal logging
 	internal.LogSetup()
 
+	c.HostName = internal.GetHostName()
 	c.ConsulVersion = internal.CheckHashiVersion("consul")
 	c.NomadVersion = internal.CheckHashiVersion("nomad")
 	c.VaultVersion = internal.CheckHashiVersion("vault")
 
 	infoData := map[string]string{"OS": runtime.GOOS,
 		"Architecture": runtime.GOARCH}
+	t := time.Now()
+	infoData["Date/Time"] = t.Format("Mon Jan _2 15:04:05 2006")
 
 	if c.ConsulVersion != "ENOVERSION" {
 		infoData["Consul version"] = c.ConsulVersion
