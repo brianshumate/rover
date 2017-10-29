@@ -15,7 +15,7 @@ import (
 	"syscall"
 )
 
-// Internal describes internal fields which support the internal commands
+// Internal describes fields which support the internal commands
 // that are required of other commands
 type Internal struct {
 	ConsulVersion string

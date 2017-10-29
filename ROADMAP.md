@@ -1,9 +1,9 @@
-# Roadmap for rover
+## Informal rover Roadmap
 
 This is an informal project roadmap:
 
 - Investigate meta/grouped, commands/aliases and a better one-liner story
-- Implement info command / dashboard overview
+- Add CLI flags for upload options
 - Implement additional command core packages:
   - MySQL
   - NGINX

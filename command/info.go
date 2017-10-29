@@ -27,6 +27,16 @@ func (c *InfoCommand) Help() string {
 	helpText := `
 Usage: rover info
 	Provides current status on key details and versions for a system
+
+Example output:
+
+Basic factoids about this system:
+
+OS:              darwin
+Architecture:    amd64
+Date/Time:       Sun Oct 29 12:53:43 2017
+Consul version:  v0.9.3
+Vault version:   v0.8.3
 `
 
 	return strings.TrimSpace(helpText)
@@ -64,12 +74,12 @@ func (c *InfoCommand) Run(_ []string) int {
 		columns = append(columns, fmt.Sprintf("%s: | %s ", k, v))
 	}
 	data := columnize.SimpleFormat(columns)
-	out := fmt.Sprintf("Handy factoids about this system:\n\n%s", data)
+	out := fmt.Sprintf("Basic factoids about this system:\n\n%s", data)
 	c.UI.Output(out)
 	return 0
 }
 
 // Synopsis output
 func (c *InfoCommand) Synopsis() string {
-	return "Output installation information"
+	return "Output basic system factoids"
 }

@@ -44,7 +44,20 @@ Usage: rover upload [options]
   Upload an archive file to S3 bucket
 
 General Options:
-  -file="rover-host-20171028110212.zip"		Specify the filename to upload.
+  -file="rover-host-20171028110212.zip"	Specify the filename to upload.
+
+Environment Variables:
+
+  The upload command requires these environment variables:
+
+  - AWS_ACCESS_KEY_ID
+  - AWS_SECRET_ACCESS_KEY
+  - AWS_BUCKET
+  - AWS_REGION
+
+  Optionally specify a bucket prefix:
+
+  - AWS_PREFIX
 `
 
 	return strings.TrimSpace(helpText)
@@ -81,7 +94,7 @@ func (c *UploadCommand) Run(args []string) int {
 			columns = append(columns, fmt.Sprintf("%s: | %s ", k, v))
 		}
 		envVars := columnize.SimpleFormat(columns)
-		out := fmt.Sprintf("One or more required environment variables are not set; please ensure that the following environment variables are set:\n\n%s", envVars)
+		out := fmt.Sprintf("One or more required environment variables are not set;\n please ensure that the following environment variables are set:\n\n%s", envVars)
 		c.UI.Error(out)
 
 		os.Exit(1)

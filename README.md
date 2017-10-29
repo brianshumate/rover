@@ -4,15 +4,18 @@
     |   _|  _  |  |  |  -__|   _|          ----========      |-___-|
     |__| |_____|\___/|_____|__|    ----================   @--|@---@|--@
 
+
+> rover |ˈrōvər| n. a vehicle for driving over rough terrain, especially one driven by remote control over extraterrestrial terrain
+
 ## What?
 
-`rover` is a tool that explores systems and reports on what it finds.
+`rover` is a CLI tool that explores systems and stores what it finds in plain text files which can optionally be archived and uploaded to remote storage.
 
 It is inspired by tools like my friend Brent's [debug-ninja](https://github.com/fprimex/debug-ninja) and Apple's `sysdiagnose`.
 
 `rover` gathers important factoids from a system to paint a detailed picture of the current operating environment for engineers and operators curious about such things.
 
-The types of information `rover` gathers includes:
+The general types of information `rover` gathers include:
 
 - Operating system command output
 - Operating system logging
@@ -20,6 +23,8 @@ The types of information `rover` gathers includes:
 - Application or service specific logging
 
 All of the stored information can then be packaged up into a zip file named for the host, and shared however you prefer. Currently, `rover` supports shipping the zip file to an S3 bucket.
+
+> See the **Internals** section for a more detailed breakdown of the specific commands that `rover` will attempt to execute on a given platform
 
 ## Why?
 
@@ -29,10 +34,11 @@ To assist with troubleshooting of systems and help make the process efficient, r
 
 A CLI tool called `rover` that is written in [Go](https://golang.org/)
 
+`rover` is a relatively small (12MB) static binary that is specifically aimed at systems running FreeBSD, Linux, and macOS for the time being.
+
 ## Building
 
-If you have a Go environment established, you can install and run the
-`rover` command like this:
+If you have a Go environment, you can install and run the `rover` command like this:
 
 ```
 $ go get github.com/brianshumate/rover
@@ -49,11 +55,11 @@ Available commands are:
     vault      Execute Vault related commands and store output
 ```
 
-Otherwise, you can consult the [Go documentation for the Go tools](https://golang.org/doc/install#install) for your particular platform, and _go_ from there!
+Otherwise, you can consult the [Go documentation for the Go tools](https://golang.org/doc/install#install) for your platform (be sure it is one of the previously mentioned supported OS), and ***go*** from there!
 
 If you change into the `$GOPATH/src/github.com/brianshumate/rover` directory, you can build `rover` binaries for different platforms by typing `make`.
 
-The project currently builds binaries for FreeBSD, Linux, and macOS by default; they're located in the following subdirectories of `pkg/` after a successful build:
+Binaries are located in the following subdirectories of `pkg/` after a successful build:
 
 ```
 ├── pkg
