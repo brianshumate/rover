@@ -24,7 +24,7 @@ const (
 	archiveFileDescr   = "Archive filename"
 )
 
-// UploadCommand describes info upload related fields
+// UploadCommand describes upload related fields
 type UploadCommand struct {
 	AccessKey   string
 	ArchiveFile string
@@ -73,14 +73,14 @@ func (c *UploadCommand) Run(args []string) int {
 	log.Printf("[i] Hello from the rover upload module on %s!", c.HostName)
 
 	if len(c.AccessKey) == 0 || len(c.SecretKey) == 0 || len(c.Bucket) == 0 || len(c.Region) == 0 {
-		log.Println("[e] Missing one of the required AWS environment variables")
+		log.Println("[e] We are missing at least one of the required AWS environment variables")
 		columns := []string{}
 		kvs := map[string]string{"AWS_ACCESS_KEY_ID": "Access key ID for AWS", "AWS_SECRET_ACCESS_KEY": "Secret access key ID for AWS", "AWS_BUCKET": " Name of the S3 bucket", "AWS_REGION": "AWS region for the bucket"}
 		for k, v := range kvs {
 			columns = append(columns, fmt.Sprintf("%s: | %s ", k, v))
 		}
 		envVars := columnize.SimpleFormat(columns)
-		out := fmt.Sprintf("One or more upload related environment variables not set; please ensure that the following environment variables are set:\n\n%s", envVars)
+		out := fmt.Sprintf("One or more required environment variables are not set; please ensure that the following environment variables are set:\n\n%s", envVars)
 		c.UI.Error(out)
 
 		os.Exit(1)
@@ -92,7 +92,7 @@ func (c *UploadCommand) Run(args []string) int {
 
 	file, err := os.Open(c.ArchiveFile)
 	if err != nil {
-		out := fmt.Sprintf("Error opening archive file! Error: %v", err)
+		out := fmt.Sprintf("Error opening %s! Error: %v", c.ArchiveFile, err)
 		c.UI.Error(out)
 		log.Println(out)
 		os.Exit(-1)
@@ -102,7 +102,7 @@ func (c *UploadCommand) Run(args []string) int {
 		// Close after zip file is successfully uploaded
 		err = file.Close()
 		if err != nil {
-			out := fmt.Sprintf("Could not close file %s! Error: %v", c.ArchiveFile, err)
+			out := fmt.Sprintf("Could not close %s! Error: %v", c.ArchiveFile, err)
 			c.UI.Error(out)
 			os.Exit(-1)
 		}
