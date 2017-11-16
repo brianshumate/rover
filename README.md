@@ -7,7 +7,7 @@
 
 > rover |ˈrōvər| n. a vehicle for driving over rough terrain, especially one driven by remote control over extraterrestrial terrain
 
-![Go Report Card](https://goreportcard.com/badge/github.com/brianshumate/rover)
+[![Go Report Card](https://goreportcard.com/badge/github.com/brianshumate/rover)](https://goreportcard.com/report/github.com/brianshumate/rover)
 
 ## What?
 
