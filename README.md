@@ -13,7 +13,7 @@
 
 `rover` is a CLI tool that explores systems and stores what it finds in plain text files which can optionally be archived and uploaded to remote storage.
 
-It is inspired by tools like my friend Brent's [debug-ninja](https://github.com/fprimex/debug-ninja) and Apple's `sysdiagnose`.
+It is inspired by tools like Apple's `sysdiagnose` and my friend Brent's [debug-ninja](https://github.com/fprimex/debug-ninja) utilities.
 
 `rover` gathers important factoids from a system to paint a detailed picture of the current operating environment for engineers and operators curious about such things.
 
