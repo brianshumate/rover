@@ -68,7 +68,7 @@ func CheckProc(name string) (bool, string) {
 func CheckHashiVersion(name string) string {
 	active, pid := CheckProc(name)
 	if active {
-		log.Printf("[i] %s processs identified as %s", name, pid)
+		log.Printf("[i] %s process identified as %s", name, pid)
 		path, err := exec.LookPath(name)
 		if err != nil {
 			log.Printf("[i] Did not find a %s binary in PATH", name)

@@ -63,7 +63,7 @@ func (c *ConsulCommand) Run(_ []string) int {
 
 	// Dump commands only if a running Consul process is detected
 	if c.ConsulDa {
-		log.Printf("[i] Consul processs identified as %s", c.ConsulPID)
+		log.Printf("[i] Consul process identified as %s", c.ConsulPID)
 		internal.Dump("consul", "consul_version", "consul", "version")
 		internal.Dump("consul", "consul_info", "consul", "info")
 		internal.Dump("consul", "consul_members", "consul", "members")

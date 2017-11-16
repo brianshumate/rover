@@ -22,3 +22,11 @@
 - Additional info command output
 - More help output touches
 - Update documentation
+
+## v0.0.5
+
+- Archive now accepts these flags
+  - `-keep-source` preserves the archive source directory
+  - `-path` full archive file output path
+- Fix typos
+- Add Go Report status
