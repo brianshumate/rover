@@ -24,7 +24,7 @@ The general types of information `rover` gathers include:
 - Application or service specifc command output
 - Application or service specific logging
 
-All of the stored information can then be packaged up into a zip file named for the host, and shared however you prefer. Currently, `rover` supports shipping the zip file to an S3 bucket.
+All of the stored information can then be packaged up into a zip file named for the host, and shared however you prefer. Currently, `rover` directly supports shipping the zip file to an S3 bucket as well.
 
 > See the **Internals** section for a more detailed breakdown of the specific commands that `rover` will attempt to execute on a given platform
 
