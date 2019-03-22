@@ -5,13 +5,15 @@ package command
 
 import (
 	"fmt"
-	"github.com/brianshumate/rover/internal"
-	"github.com/mitchellh/cli"
 	"log"
 	"os"
 	"path/filepath"
 	"runtime"
 	"strings"
+	"time"
+
+	"github.com/mitchellh/cli"
+	"github.com/briandowns/spinner"
 )
 
 // VaultCommand describes Vault related fields
@@ -19,7 +21,7 @@ type VaultCommand struct {
 	HostName        string
 	OS              string
 	UI              cli.Ui
-	VaultDa         bool
+	VaultPID		string
 	VaultTokenValue string
 }
 
@@ -35,13 +37,35 @@ Usage: rover consul
 
 // Run vault commands
 func (c *VaultCommand) Run(_ []string) int {
+	// Shout out to Ye Olde School BSD spinner!
+	roverSpinnerSet := []string{"/", "|", "\\", "-", "|", "\\", "-"}
+	s := spinner.New(roverSpinnerSet, 174*time.Millisecond)
+	s.Writer = os.Stderr
+	err := s.Color("fgHiCyan")
+	if err != nil {
+		log.Printf("vault", "weird-error", err.Error())
+	}
+	s.Suffix = " Gathering Vault information ..."
+	s.FinalMSG = "Executed Vault related commands and stored output\n"
+	s.Start()
 
 	// Internal logging
-	internal.LogSetup()
-
-	c.VaultDa, _ = internal.CheckProc("consul")
+	// LogSetup()
+    p, err := CheckProc("consul")
+    if err != nil {
+    	fmt.Println("Cannot find a consul")
+    	os.Exit(1)
+    }
+    c.VaultPID = p
 	c.OS = runtime.GOOS
-	c.HostName = internal.GetHostName()
+	h, err := GetHostName()
+	if err != nil {
+		out := fmt.Sprintf("Cannot get system hostname with error %v", err)
+		c.UI.Output(out)
+
+		return 1
+	}
+	c.HostName = h
 	c.VaultTokenValue = os.Getenv("VAULT_TOKEN")
 
 	log.Printf("[i] Hello from the rover Vault module on %s!", c.HostName)
@@ -59,39 +83,39 @@ func (c *VaultCommand) Run(_ []string) int {
 	log.Printf("[i] VAULT_TOKEN length: %v", len(c.VaultTokenValue))
 
 	// Dump commands only if running Vault server process detected
-	if c.VaultDa {
+	if c.VaultPID != "" {
 
-		internal.Dump("vault", "vault_version", "vault", "version")
-		internal.Dump("vault", "vault_audit_list", "vault", "audit-list")
-		internal.Dump("vault", "vault_auth_methods", "vault", "auth", "-methods")
-		internal.Dump("vault", "vault_mounts", "vault", "mounts")
-		internal.Dump("vault", "vault_status", "vault", "status")
+		Dump("vault", "vault_version", "vault", "version")
+		Dump("vault", "vault_audit_list", "vault", "audit-list")
+		Dump("vault", "vault_auth_methods", "vault", "auth", "-methods")
+		Dump("vault", "vault_mounts", "vault", "mounts")
+		Dump("vault", "vault_status", "vault", "status")
 
 		// Check syslog output locations for supported systems
 		switch c.OS {
 
 		case Darwin:
 			log.Println("[i] Attempting extraction of Vault log messages from system log ...")
-			internal.Dump("vault", "vault_syslog", "grep", "-w", "vault", "/var/log/system.log")
+			Dump("vault", "vault_syslog", "grep", "-w", "vault", "/var/log/system.log")
 
 		case FreeBSD, Linux:
 			// Grep for "vault" in /var/log/messages or /var/log/syslog (sudo required)
 			log.Println("[i] Attempting extraction of Vault log messages from system logs (sudo required) ...")
-			if internal.FileExist("/var/log/syslog") {
+			if FileExist("/var/log/syslog") {
 				log.Println("[i] Checking /var/log/syslog for Vault entries (sudo required) ...")
-				internal.Dump("vault", "vault_syslog", "grep", "-w", "vault", "/var/log/syslog")
+				Dump("vault", "vault_syslog", "grep", "-w", "vault", "/var/log/syslog")
 			} else {
 				log.Println("[i] No /var/log/syslog found, checking /var/log/messages for Vault entries (sudo required) ...")
-				internal.Dump("vault", "vault_syslog", "grep", "-w", "vault", "/var/log/messages")
+				Dump("vault", "vault_syslog", "grep", "-w", "vault", "/var/log/messages")
 			}
 		}
 	} else {
 		log.Println("[w] No vault process detected in this environment")
 	}
 
-	out := "Executed Vault commands and stored output"
-	c.UI.Output(out)
-
+	// out := "Executed Vault commands and stored output"
+	// c.UI.Output(out)
+    s.Stop()
 	return 0
 }
 

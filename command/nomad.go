@@ -5,21 +5,21 @@ package command
 
 import (
 	"fmt"
-	"github.com/brianshumate/rover/internal"
-	"github.com/mitchellh/cli"
 	"log"
 	"os"
 	"path/filepath"
 	"runtime"
 	"strings"
+
+	"github.com/mitchellh/cli"
 )
 
 // NomadCommand describes Nomad related fields
 type NomadCommand struct {
-	HostName string
-	OS       string
-	UI       cli.Ui
-	NomadDa  bool
+	HostName 	string
+	OS       	string
+	UI       	cli.Ui
+	NomadPID 	string
 }
 
 // Help output
@@ -34,18 +34,30 @@ Usage: rover nomad
 
 // Run nomad commands
 func (c *NomadCommand) Run(_ []string) int {
-
+    n := NomadCommand{}
 	// Internal logging
-	internal.LogSetup()
+	// LogSetup()
 
-	c.NomadDa, _ = internal.CheckProc("nomad")
+	p, err := CheckProc("nomad")
+	if err != nil {
+    	fmt.Println("Cannot find a consul")
+    	os.Exit(1)
+    }
+    c.NomadPID = p
 	c.OS = runtime.GOOS
-	c.HostName = internal.GetHostName()
+	h, err := GetHostName()
+	if err != nil {
+		out := fmt.Sprintf("Cannot get system hostname with error %v", err)
+		c.UI.Output(out)
 
-	log.Printf("[i] Hello from the rover Nomad module on %s!", c.HostName)
+		return 1
+	}
+	n.HostName = h
+
+	log.Printf("[i] Hello from the rover Nomad module on %s!", n.HostName)
 
 	// Handle creating the command output directory
-	outPath := filepath.Join(".", fmt.Sprintf("%s/nomad", c.HostName))
+	outPath := filepath.Join(".", fmt.Sprintf("%s/nomad", n.HostName))
 	if err := os.MkdirAll(outPath, os.ModePerm); err != nil {
 		log.Fatalf("[e] Cannot create directory %s.", outPath)
 		panic(err)
@@ -58,27 +70,27 @@ func (c *NomadCommand) Run(_ []string) int {
 	}
 
 	// Dump commands only if running Nomad server process detected
-	if c.NomadDa {
+	if c.NomadPID != "" {
 
-		internal.Dump("nomad", "nomad_status", "nomad", "status")
-		internal.Dump("nomad", "nomad_version", "nomad", "version")
+		Dump("nomad", "nomad_status", "nomad", "status")
+		Dump("nomad", "nomad_version", "nomad", "version")
 
 		//Check syslog output locations for supported systems
 		switch c.OS {
 
 		case "darwin":
 			log.Println("[i] Attempting extraction of Nomad log messages from system log ...")
-			internal.Dump("nomad", "nomad_syslog", "grep", "-w", "nomad", "/var/log/system.log")
+			Dump("nomad", "nomad_syslog", "grep", "-w", "nomad", "/var/log/system.log")
 
 		case "freebsd", "linux":
 			// Grep for "nomad" in /var/log/messages or /var/log/syslog (sudo required)
 			log.Println("[i] Attempting extraction of Nomad log messages from system logs (sudo required) ...")
-			if internal.FileExist("/var/log/syslog") {
+			if FileExist("/var/log/syslog") {
 				log.Println("[i] Checking /var/log/syslog for Nomad entries (sudo required) ...")
-				internal.Dump("nomad", "nomad_syslog", "grep", "-w", "nomad", "/var/log/syslog")
+				Dump("nomad", "nomad_syslog", "grep", "-w", "nomad", "/var/log/syslog")
 			} else {
 				log.Println("[i] No /var/log/syslog found, checking /var/log/messages for Nomad entries (sudo required) ...")
-				internal.Dump("nomad", "nomad_syslog", "grep", "-w", "nomad", "/var/log/messages")
+				Dump("nomad", "nomad_syslog", "grep", "-w", "nomad", "/var/log/messages")
 			}
 		}
 	} else {

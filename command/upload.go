@@ -6,17 +6,17 @@ import (
 	"bytes"
 	"flag"
 	"fmt"
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/credentials"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/s3"
-	"github.com/brianshumate/rover/internal"
-	"github.com/mitchellh/cli"
-	"github.com/ryanuber/columnize"
 	"log"
 	"net/http"
 	"os"
 	"strings"
+
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/mitchellh/cli"
+	"github.com/ryanuber/columnize"
 )
 
 const (
@@ -74,9 +74,16 @@ func (c *UploadCommand) Run(args []string) int {
 	}
 
 	// Internal logging
-	internal.LogSetup()
+	// LogSetup()
 
-	c.HostName = internal.GetHostName()
+	h, err := GetHostName()
+	if err != nil {
+		out := fmt.Sprintf("Cannot get system hostname with error %v", err)
+		c.UI.Output(out)
+
+		return 1
+	}
+	c.HostName = h
 	c.AccessKey = os.Getenv("AWS_ACCESS_KEY_ID")
 	c.SecretKey = os.Getenv("AWS_SECRET_ACCESS_KEY")
 	c.Bucket = os.Getenv("AWS_BUCKET")

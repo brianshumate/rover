@@ -3,13 +3,17 @@
 package command
 
 import (
+	"bufio"
 	"fmt"
-	"github.com/brianshumate/rover/internal"
-	"github.com/mitchellh/cli"
-	"github.com/ryanuber/columnize"
+	"os"
+	"path/filepath"
 	"runtime"
 	"strings"
 	"time"
+
+    "github.com/hashicorp/go-hclog"
+	"github.com/mitchellh/cli"
+	"github.com/ryanuber/columnize"
 )
 
 // InfoCommand describes info dashboard related fields
@@ -17,6 +21,7 @@ type InfoCommand struct {
 	ConsulVersion string
 	HostName      string
 	NomadVersion  string
+	OS 			  string
 	Uptime        string
 	UI            cli.Ui
 	VaultVersion  string
@@ -44,13 +49,37 @@ Vault version:   v0.8.3
 
 // Run command
 func (c *InfoCommand) Run(_ []string) int {
-	// Internal logging
-	internal.LogSetup()
 
-	c.HostName = internal.GetHostName()
-	c.ConsulVersion = internal.CheckHashiVersion("consul")
-	c.NomadVersion = internal.CheckHashiVersion("nomad")
-	c.VaultVersion = internal.CheckHashiVersion("vault")
+	// Internal logging
+	l := "rover.log"
+	p := filepath.Join(fmt.Sprintf("%s", c.HostName), "log")
+    if err := os.MkdirAll(p, os.ModePerm); err != nil {
+		fmt.Println(fmt.Sprintf("Cannot create log directory %s.", p))
+		os.Exit(1)
+	}
+	f, err := os.OpenFile(filepath.Join(p, l), os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		fmt.Println(fmt.Sprintf("Failed to open log file %s with error: %v", f, err))
+		os.Exit(1)
+	}
+	defer f.Close()
+	w := bufio.NewWriter(f)
+    logger := hclog.New(&hclog.LoggerOptions{Name: "rover", Level: hclog.LevelFromString("INFO"), Output: w})
+
+	logger.Info("system", "hello from", c.HostName)
+    logger.Info("system", "detected OS", c.OS)
+
+	h, err := GetHostName()
+	if err != nil {
+		out := fmt.Sprintf("Cannot get system hostname with error %v", err)
+		c.UI.Output(out)
+
+		return 1
+	}
+	c.HostName = h
+	c.ConsulVersion = CheckHashiVersion("consul")
+	c.NomadVersion = CheckHashiVersion("nomad")
+	c.VaultVersion = CheckHashiVersion("vault")
 
 	infoData := map[string]string{"OS": runtime.GOOS,
 		"Architecture": runtime.GOARCH}
