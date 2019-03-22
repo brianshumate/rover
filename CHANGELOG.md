@@ -1,27 +1,8 @@
-## v0.0.1
+## v0.1.0
 
-- Initial release has some basic funcitonality
-  - System command gathering
-  - Consul command/profiling/syslog gathering
-  - Vault commands/syslog gathering
-  - Zip archive of all output
-
-## v0.0.2
-
-- Initial info command
-- Update documentation
-
-## v0.0.3
-
-- Initial upload command
-- Improved help output
-- Update documentation
-
-## v0.0.4
-
-- Additional info command output
-- More help output touches
-- Update documentation
+- Using go-hclog for the log output
+- Moved internal helpers package into command package
+- Add spinner to long lived commands
 
 ## v0.0.5
 
@@ -30,3 +11,28 @@
   - `-path` full archive file output path
 - Fix typos
 - Add Go Report status
+
+## v0.0.4
+
+- Additional info command output
+- More help output touches
+- Update documentation
+
+## v0.0.3
+
+- Initial upload command
+- Improved help output
+- Update documentation
+
+## v0.0.2
+
+- Initial info command
+- Update documentation
+
+## v0.0.1
+
+- Initial release has some basic funcitonality
+  - System command gathering
+  - Consul command/profiling/syslog gathering
+  - Vault commands/syslog gathering
+  - Zip archive of all output

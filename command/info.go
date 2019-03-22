@@ -81,30 +81,51 @@ func (c *InfoCommand) Run(_ []string) int {
 	c.NomadVersion = CheckHashiVersion("nomad")
 	c.VaultVersion = CheckHashiVersion("vault")
 
-	infoData := map[string]string{"OS": runtime.GOOS,
+    // System data / random system factoids
+	systemData := map[string]string{"OS": runtime.GOOS,
 		"Architecture": runtime.GOARCH}
 	t := time.Now()
-	infoData["Date/Time"] = t.Format("Mon Jan _2 15:04:05 2006")
+	systemData["Date/Time"] = t.Format("Mon Jan _2 15:04:05 2006")
 
-	if c.ConsulVersion != "ENOVERSION" {
-		infoData["Consul version"] = c.ConsulVersion
+	systemCols := []string{}
+	for k, v := range systemData {
+		systemCols = append(systemCols, fmt.Sprintf("%s: | %s ", k, v))
 	}
 
-	if c.NomadVersion != "ENOVERSION" {
-		infoData["Nomad version"] = c.NomadVersion
+	systemOut := columnize.SimpleFormat(systemCols)
+
+    // Version data for actively running binaries
+    versionData := map[string]string{}
+	if c.ConsulVersion != "" {
+		versionData["Consul version"] = c.ConsulVersion
 	}
 
-	if c.VaultVersion != "ENOVERSION" {
-		infoData["Vault version"] = c.VaultVersion
+	if c.NomadVersion != "" {
+		versionData["Nomad version"] = c.NomadVersion
 	}
 
-	columns := []string{}
-	for k, v := range infoData {
-		columns = append(columns, fmt.Sprintf("%s: | %s ", k, v))
+	if c.VaultVersion != "" {
+		versionData["Vault version"] = c.VaultVersion
 	}
-	data := columnize.SimpleFormat(columns)
-	out := fmt.Sprintf("Basic factoids about this system:\n\n%s", data)
-	c.UI.Output(out)
+
+	versionCols := []string{}
+	for k, v := range versionData {
+		versionCols = append(versionCols, fmt.Sprintf("%s: | %s ", k, v))
+	}
+
+	versionOut := columnize.SimpleFormat(versionCols)
+
+    so := fmt.Sprintf("Basic factoids about this system:\n\n%s\n\n", systemOut)
+    vo := fmt.Sprintf("Active running versions:\n\n%s\n\n", versionOut)
+
+    if versionOut == "" {
+    	out := fmt.Sprintf("%s", so)
+    	c.UI.Output(out)
+    } else {
+    	out := fmt.Sprintf("%s%s", so, vo)
+    	c.UI.Output(out)
+    }
+
 	return 0
 }
 

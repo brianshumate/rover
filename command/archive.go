@@ -3,6 +3,7 @@
 package command
 
 import (
+	"bufio"
 	"flag"
 	"fmt"
 	"log"
@@ -11,13 +12,16 @@ import (
 	"strings"
 	"time"
 
+	"github.com/briandowns/spinner"
+	"github.com/hashicorp/go-hclog"
 	"github.com/mitchellh/cli"
 	"github.com/pierrre/archivefile/zip"
 
 )
 
 const (
-	archivePathDefault = "/tmp"
+	// Default to storing archive files in the PWD vs. TMPDIR
+	archivePathDefault = "./"
 	archivePathDescr   = "Archive file path"
 )
 
@@ -25,6 +29,7 @@ const (
 type ArchiveCommand struct {
 	ArchivePath string
 	HostName    string
+	OS          string
 	KeepSrc     bool
 	TargetFile  string
 	UI          cli.Ui
@@ -47,7 +52,26 @@ General Options:
 
 // Run command
 func (c *ArchiveCommand) Run(args []string) int {
+
 	// Internal logging
+	l := "rover.log"
+	p := filepath.Join(fmt.Sprintf("%s", c.HostName), "log")
+    if err := os.MkdirAll(p, os.ModePerm); err != nil {
+		fmt.Println(fmt.Sprintf("Cannot create log directory %s.", p))
+		os.Exit(1)
+	}
+	f, err := os.OpenFile(filepath.Join(p, l), os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		fmt.Println(fmt.Sprintf("Failed to open log file %s with error: %v", f, err))
+		os.Exit(1)
+	}
+	defer f.Close()
+	w := bufio.NewWriter(f)
+    logger := hclog.New(&hclog.LoggerOptions{Name: "rover", Level: hclog.LevelFromString("INFO"), Output: w})
+
+	logger.Info("archive", "hello from", c.HostName)
+    logger.Info("archive", "detected OS", c.OS)
+
 	cmdFlags := flag.NewFlagSet("archive", flag.ContinueOnError)
 	cmdFlags.Usage = func() { c.UI.Output(c.Help()) }
 	cmdFlags.StringVar(&c.ArchivePath, "path", archivePathDefault, archivePathDescr)
@@ -72,21 +96,42 @@ func (c *ArchiveCommand) Run(args []string) int {
 		if !c.KeepSrc {
 			err := os.RemoveAll(c.HostName)
 			if err != nil {
-				log.Println("[e] Could not remove source directory!")
-				panic(err)
+				logger.Error("cannot remove source directory with error", err.Error())
+				fmt.Println(fmt.Sprintf("\nCannot remove source directory with error: %v", err))
+				os.Exit(1)
 			}
 		}
-		log.Printf("[i] Preserved source directory in %s.", c.HostName)
+		logger.Info("archive", "preserved source directory in", c.HostName)
 	}()
 
+	_, err = os.Stat(c.HostName)
+	if os.IsNotExist(err) {
+        fmt.Println(fmt.Sprintf("Cannot archive nonexistent directory '%s'; please use rover commands to generate data first.", c.HostName))
+        os.Exit(1)
+    }
 	outPath := filepath.Join(c.ArchivePath, archiveFileName)
+
+    // Shout out to Ye Olde School BSD spinner!
+	roverSpinnerSet := []string{"/", "|", "\\", "-", "|", "\\", "-"}
+	s := spinner.New(roverSpinnerSet, 174*time.Millisecond)
+	s.Writer = os.Stderr
+	err = s.Color("fgHiCyan")
+	if err != nil {
+		log.Printf("install", "weird-error", err.Error())
+	}
+	s.Suffix = " Archiving data, please wait ..."
+	s.Start()
 	err = zip.ArchiveFile(fmt.Sprintf("%s", c.HostName), outPath, nil)
 	if err != nil {
-		log.Println("[e] Could not archive data!")
-		panic(err)
+		logger.Error("cannot archive data with error", err.Error())
+		fmt.Println(fmt.Sprintf("\nCannot archive data with error: %v", err))
+		os.Exit(1)
 	}
-	out := fmt.Sprintf("Data archived in %s", outPath)
-	c.UI.Output(out)
+	// out := fmt.Sprintf("Data archived in %s", outPath)
+	// c.UI.Output(out)
+
+	s.FinalMSG = fmt.Sprintf("Data archived in %s\n", outPath)
+	s.Stop()
 
 	return 0
 }

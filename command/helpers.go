@@ -17,6 +17,44 @@ import (
 	"github.com/pierrre/archivefile/zip"
 )
 
+const (
+	// CheckpointURLBase is the URL base for CheckPoint API
+	CheckpointURLBase string = "https://checkpoint-api.hashicorp.com"
+
+	// ReleaseURLBase is the URL base for the HashiCorp releases website
+	ReleaseURLBase string = "https://releases.hashicorp.com"
+
+	// VaultReleaseURLBase is the URL base for the Vault releases page
+	VaultReleaseURLBase string = "https://releases.hashicorp.com/vault/"
+
+	// Consul binary name
+	Consul string = "consul"
+
+	// ConsulTemplate binary name
+	ConsulTemplate string = "consul-template"
+
+	// EnvConsul binary name
+	EnvConsul string = "envconsul"
+
+	// Nomad binary name
+	Nomad string = "nomad"
+
+	// Packer binary name
+	Packer string = "packer"
+
+	// Sentinel binary name
+	Sentinel string = "sentinel"
+
+	// Terraform binary name
+	Terraform string = "terraform"
+
+	// Vagrant binary name
+	Vagrant string = "vagrant"
+
+	// Vault binary name
+	Vault string = "vault"
+)
+
 // Internal describes fields which support the internal commands
 type Internal struct {
 	ConsulVersion string
@@ -26,6 +64,54 @@ type Internal struct {
 	LogFile       string
 	TargetFile    string
 	VaultVersion  string
+}
+
+// ActiveLocalVersion tries to locate binary tools in the system path and get their version using OS calls
+// 'consul version' has a slightly different output style from the others, and must be handled differently
+func ActiveLocalVersion(binary string) (string, error) {
+	i := Internal{}
+	// Internal logging
+	l := "rover.log"
+	h, err := GetHostName()
+	if err != nil {
+		return "", fmt.Errorf("Cannot get system hostname with error %v", err)
+	}
+	i.HostName = h
+	p := filepath.Join(fmt.Sprintf("%s", i.HostName), "log")
+	pid := ""
+    if err := os.MkdirAll(p, os.ModePerm); err != nil {
+		fmt.Println(fmt.Sprintf("Cannot create log directory %s.", p))
+		return pid, err
+	}
+	f, err := os.OpenFile(filepath.Join(p, l), os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		fmt.Println(fmt.Sprintf("Failed to open log file %s with error: %v", f, err))
+		return pid, err
+	}
+	defer f.Close()
+	w := bufio.NewWriter(f)
+    logger := hclog.New(&hclog.LoggerOptions{Name: "rover", Level: hclog.LevelFromString("INFO"), Output: w})
+	binPath, err := exec.LookPath(binary)
+	if err != nil {
+		logger.Error("helper", "cannot detect binary on PATH", binary, "error", err.Error())
+		return "", fmt.Errorf("Cannot detect binary on PATH with error: %v", err)
+	}
+	var v []byte
+	if binary == Consul {
+		v, err = exec.Command("/bin/sh", "-c", fmt.Sprintf("%s version | head -n 1 | awk '{print $2}' | cut -d 'v' -f2", binPath)).Output()
+		if err != nil {
+			logger.Error("helper", "cannot execute binary", binary, "error", err.Error())
+			return "", fmt.Errorf("Cannot execute binary with error: %v", err)
+		}
+		return string(v), nil
+	} else {
+		v, err = exec.Command("/bin/sh", "-c", fmt.Sprintf("%s version | awk '{print $2}' | cut -d 'v' -f2", binPath)).Output()
+		if err != nil {
+			logger.Error("helper", "cannot execute binary", binary, "error", err.Error())
+			return "", fmt.Errorf("Cannot execute binary with error: %v", err)
+		}
+		return string(v), nil
+	}
 }
 
 // CheckProc checks for a running process by name with pgrep or ps and returns its PID
@@ -83,11 +169,13 @@ func CheckProc(name string) (string, error) {
 	return pid, nil
 }
 
-// CheckHashiVersion attempts to locate HashiCorp runtime tools and get
+// CheckHashiVersion attempts to locate HashiCorp runtime tools in and get
 // their versions - Consul has slightly different version output style so
 // it must be handled differently
 func CheckHashiVersion(name string) string {
 	i := Internal{}
+	pid := ""
+	v := ""
 	// Internal logging
 	l := "rover.log"
 	h, err := GetHostName()
@@ -96,7 +184,6 @@ func CheckHashiVersion(name string) string {
 	}
 	i.HostName = h
 	p := filepath.Join(fmt.Sprintf("%s", i.HostName), "log")
-	v := ""
     if err := os.MkdirAll(p, os.ModePerm); err != nil {
 		fmt.Println(fmt.Sprintf("Cannot create log directory %s.", p))
 		os.Exit(1)
@@ -110,10 +197,9 @@ func CheckHashiVersion(name string) string {
 	w := bufio.NewWriter(f)
     logger := hclog.New(&hclog.LoggerOptions{Name: "rover", Level: hclog.LevelFromString("INFO"), Output: w})
 
-	pid, err := CheckProc(name)
+	pid, err = CheckProc(name)
 	if err != nil {
-    	fmt.Println("Cannot check proc")
-    	//os.Exit(1)
+    	logger.Error("check-hashi-version", "cannot check for process", name)
     }
 	if pid != "" {
 		logger.Info("check-hashi-version", "process identified", name, "pid", pid)
