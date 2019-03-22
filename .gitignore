@@ -6,7 +6,8 @@ output
 tests.xml
 vet.report
 rover
-rover-waves-*
+rover-penguin-*
 waves
 penguin
 log
+*.zip

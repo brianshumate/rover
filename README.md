@@ -120,6 +120,49 @@ $ rover upload -file=rover-waves-20171028110212.zip
 Success! Uploaded rover-waves-20171028110212.zip
 ```
 
+## Commands
+
+Rover is concerned primarily with gathering useful operational intelligence from an environment. It can also currently pack up that intelligence and ship it to an S3 bucket of your choosing. Here are the current commands and their details.
+
+### archive
+
+The `archive` command expects a directory in the present working directory with the same name as the system hostname, where `rover` has stored command outputs which it will compress into a zip archive.
+
+```
+$ rover archive
+Data archived in rover-penguin-20190322202232.zip
+```
+
+### consul
+
+### info
+
+The `info` command presents an overview of some basic details `rover` has learned about the system it is executed on. The output will resemble the following example:
+
+```
+$ rover info
+Basic factoids about this system:
+
+OS:            linux
+Architecture:  amd64
+Date/Time:     Fri Mar 22 20:19:43 2019
+
+Active running versions:
+
+Consul version:  v1.4.3
+Vault version:   v1.1.0
+```
+
+### nomad
+
+### system
+
+The `system` command does a bit of work to determine something about the system it's been executed on, then proceeds to execute several commands (as described in the **Internals** section) and saves the output of the commands to simple text files.
+
+### upload
+
+### vault
+
 ## Internals
 
 You don't need to know all of this to use `rover`, but it is documented here for ease of reference by those who'd like more detail without reading the source code.
