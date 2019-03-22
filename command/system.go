@@ -13,35 +13,35 @@ import (
 	"time"
 
 	"github.com/briandowns/spinner"
-    "github.com/hashicorp/go-hclog"
+	"github.com/hashicorp/go-hclog"
 	"github.com/mitchellh/cli"
 )
 
 const (
 	// Darwin OS
-	Darwin string 	= "darwin"
+	Darwin string = "darwin"
 	// FreeBSD OS
-	FreeBSD string 	= "freebsd"
+	FreeBSD string = "freebsd"
 	// Linux OS
-	Linux string 	= "linux"
+	Linux string = "linux"
 	// NetBSD OS
-	NetBSD string 	= "netbsd"
+	NetBSD string = "netbsd"
 	// OpenBSD OS
-	OpenBSD string 	= "openbsd"
-    // Solaris OS
-    Solaris string 	= "solaris"
-    // Windows OS
-    Windows string 	= "windows"
+	OpenBSD string = "openbsd"
+	// Solaris OS
+	Solaris string = "solaris"
+	// Windows OS
+	Windows string = "windows"
 )
 
 // SystemCommand describes system related fields
 type SystemCommand struct {
-	Arch                string
-	HostName     		string
-	OS           		string
-	ReleaseFiles 		[]string
-	UI           		cli.Ui
-	LogFile             string
+	Arch         string
+	HostName     string
+	OS           string
+	ReleaseFiles []string
+	UI           cli.Ui
+	LogFile      string
 }
 
 // Help output
@@ -56,7 +56,7 @@ Usage: rover system
 
 // Run the command
 func (c *SystemCommand) Run(_ []string) int {
-    c.Arch = runtime.GOARCH
+	c.Arch = runtime.GOARCH
 	h, err := GetHostName()
 	if err != nil {
 		out := fmt.Sprintf("Cannot get system hostname with error %v", err)
@@ -72,7 +72,7 @@ func (c *SystemCommand) Run(_ []string) int {
 		"/etc/debian_release",
 		"/etc/os-release"}
 
-    // Shout out to Ye Olde School BSD spinner!
+	// Shout out to Ye Olde School BSD spinner!
 	roverSpinnerSet := []string{"/", "|", "\\", "-", "|", "\\", "-"}
 	s := spinner.New(roverSpinnerSet, 174*time.Millisecond)
 	s.Writer = os.Stderr
@@ -87,7 +87,7 @@ func (c *SystemCommand) Run(_ []string) int {
 	// Internal logging
 	l := "rover.log"
 	p := filepath.Join(fmt.Sprintf("%s", c.HostName), "log")
-    if err := os.MkdirAll(p, os.ModePerm); err != nil {
+	if err := os.MkdirAll(p, os.ModePerm); err != nil {
 		fmt.Println(fmt.Sprintf("Cannot create log directory %s.", p))
 		os.Exit(1)
 	}
@@ -98,10 +98,10 @@ func (c *SystemCommand) Run(_ []string) int {
 	}
 	defer f.Close()
 	w := bufio.NewWriter(f)
-    logger := hclog.New(&hclog.LoggerOptions{Name: "rover", Level: hclog.LevelFromString("INFO"), Output: w})
+	logger := hclog.New(&hclog.LoggerOptions{Name: "rover", Level: hclog.LevelFromString("INFO"), Output: w})
 
-	logger.Info("system", "hello from", c.HostName)
-    logger.Info("system", "detected OS", c.OS)
+	logger.Info("system", "hello from the System module at", c.HostName)
+	logger.Info("system", "our detected OS", c.OS)
 
 	// Handle creating the command output directory
 	// TODO: maybe not such a hardcoded path?
@@ -250,10 +250,10 @@ func (c *SystemCommand) Run(_ []string) int {
 		Dump("system", "proc_sys_vm_swappiness", "cat", "/proc/sys/vm/swappiness")
 	}
 
-    // XXX: old style
+	// XXX: old style
 	// out := "Executed system commands and stored output"
 	// c.UI.Output(out)
-    s.Stop()
+	s.Stop()
 	return 0
 }
 

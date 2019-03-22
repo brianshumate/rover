@@ -79,7 +79,7 @@ func ActiveLocalVersion(binary string) (string, error) {
 	i.HostName = h
 	p := filepath.Join(fmt.Sprintf("%s", i.HostName), "log")
 	pid := ""
-    if err := os.MkdirAll(p, os.ModePerm); err != nil {
+	if err := os.MkdirAll(p, os.ModePerm); err != nil {
 		fmt.Println(fmt.Sprintf("Cannot create log directory %s.", p))
 		return pid, err
 	}
@@ -90,7 +90,7 @@ func ActiveLocalVersion(binary string) (string, error) {
 	}
 	defer f.Close()
 	w := bufio.NewWriter(f)
-    logger := hclog.New(&hclog.LoggerOptions{Name: "rover", Level: hclog.LevelFromString("INFO"), Output: w})
+	logger := hclog.New(&hclog.LoggerOptions{Name: "rover", Level: hclog.LevelFromString("INFO"), Output: w})
 	binPath, err := exec.LookPath(binary)
 	if err != nil {
 		logger.Error("helper", "cannot detect binary on PATH", binary, "error", err.Error())
@@ -126,7 +126,7 @@ func CheckProc(name string) (string, error) {
 	i.HostName = h
 	p := filepath.Join(fmt.Sprintf("%s", i.HostName), "log")
 	pid := ""
-    if err := os.MkdirAll(p, os.ModePerm); err != nil {
+	if err := os.MkdirAll(p, os.ModePerm); err != nil {
 		fmt.Println(fmt.Sprintf("Cannot create log directory %s.", p))
 		return pid, err
 	}
@@ -137,7 +137,7 @@ func CheckProc(name string) (string, error) {
 	}
 	defer f.Close()
 	w := bufio.NewWriter(f)
-    logger := hclog.New(&hclog.LoggerOptions{Name: "rover", Level: hclog.LevelFromString("INFO"), Output: w})
+	logger := hclog.New(&hclog.LoggerOptions{Name: "rover", Level: hclog.LevelFromString("INFO"), Output: w})
 
 	// If pgrep is around, use that...
 	path, err := exec.LookPath("pgrep")
@@ -162,10 +162,11 @@ func CheckProc(name string) (string, error) {
 		logger.Error("check-proc", "cannot determine PID", name)
 		return pid, err
 	}
-	if len(out) > 0 {
+	pid = strings.TrimSpace(string(out))
+	if len(pid) > 0 {
 		logger.Info("check-proc", "process detected", name, "pid", pid)
 	}
-	pid = strings.TrimSpace(string(out))
+	// pid = strings.TrimSpace(string(out))
 	return pid, nil
 }
 
@@ -184,7 +185,7 @@ func CheckHashiVersion(name string) string {
 	}
 	i.HostName = h
 	p := filepath.Join(fmt.Sprintf("%s", i.HostName), "log")
-    if err := os.MkdirAll(p, os.ModePerm); err != nil {
+	if err := os.MkdirAll(p, os.ModePerm); err != nil {
 		fmt.Println(fmt.Sprintf("Cannot create log directory %s.", p))
 		os.Exit(1)
 	}
@@ -195,12 +196,12 @@ func CheckHashiVersion(name string) string {
 	}
 	defer f.Close()
 	w := bufio.NewWriter(f)
-    logger := hclog.New(&hclog.LoggerOptions{Name: "rover", Level: hclog.LevelFromString("INFO"), Output: w})
+	logger := hclog.New(&hclog.LoggerOptions{Name: "rover", Level: hclog.LevelFromString("INFO"), Output: w})
 
 	pid, err = CheckProc(name)
 	if err != nil {
-    	logger.Error("check-hashi-version", "cannot check for process", name)
-    }
+		logger.Error("check-hashi-version", "cannot check for process", name)
+	}
 	if pid != "" {
 		logger.Info("check-hashi-version", "process identified", name, "pid", pid)
 		path, err := exec.LookPath(name)
@@ -208,17 +209,17 @@ func CheckHashiVersion(name string) string {
 			logger.Info("check-hashi-version", "cannot find binary in PATH", name)
 		}
 		if name == "consul" {
-			v, err := exec.Command("/bin/sh", "-c", fmt.Sprintf("%s version | head -n 1 | awk '{print $2}'", path)).Output()
+			v, err := exec.Command("/bin/sh", "-c", fmt.Sprintf("%s version | head -n 1 | awk '{print $2}' | cut -d 'v' -f2", path)).Output()
 			if err != nil {
 				logger.Error("check-hashi-version", "cannot execute binary", name, "error", err.Error())
 			}
-			return string(v)
+			return strings.TrimSpace(string(v))
 		} else if name == "nomad" || name == "vault" {
-			v, err := exec.Command("/bin/sh", "-c", fmt.Sprintf("%s version | awk '{print $2}'", path)).Output()
+			v, err := exec.Command("/bin/sh", "-c", fmt.Sprintf("%s version | awk '{print $2}' | cut -d 'v' -f2", path)).Output()
 			if err != nil {
 				logger.Error("check-hashi-version", "cannot execute binary", name, "error", err.Error())
 			}
-			return string(v)
+			return strings.TrimSpace(string(v))
 		}
 	}
 	return v
@@ -239,7 +240,7 @@ func Dump(dumpType string, outfile string, cmdName string, args ...string) int {
 	// Internal logging
 	l := "rover.log"
 	p := filepath.Join(fmt.Sprintf("%s", i.HostName), "log")
-    if err := os.MkdirAll(p, os.ModePerm); err != nil {
+	if err := os.MkdirAll(p, os.ModePerm); err != nil {
 		fmt.Println(fmt.Sprintf("Cannot create log directory %s.", p))
 		os.Exit(1)
 	}
@@ -250,7 +251,7 @@ func Dump(dumpType string, outfile string, cmdName string, args ...string) int {
 	}
 	defer f.Close()
 	w := bufio.NewWriter(f)
-    logger := hclog.New(&hclog.LoggerOptions{Name: "rover", Level: hclog.LevelFromString("INFO"), Output: w})
+	logger := hclog.New(&hclog.LoggerOptions{Name: "rover", Level: hclog.LevelFromString("INFO"), Output: w})
 
 	path, err := exec.LookPath(cmdName)
 	if err != nil {
@@ -287,7 +288,7 @@ func Dump(dumpType string, outfile string, cmdName string, args ...string) int {
 			if exiterr, ok := err.(*exec.ExitError); ok {
 				if status, ok := exiterr.Sys().(syscall.WaitStatus); ok {
 					cli := fmt.Sprintf("%s %s", cmdName, strings.Join(args[:], " "))
-					logger.Error("dump", "command exited with non-zero status", cli, "exit-status", hclog.Fmt("%d",status.ExitStatus()))
+					logger.Error("dump", "command exited with non-zero status", cli, "exit-status", hclog.Fmt("%d", status.ExitStatus()))
 				}
 			} else {
 				logger.Error("dump", "command wait error", err.Error())
@@ -300,7 +301,7 @@ func Dump(dumpType string, outfile string, cmdName string, args ...string) int {
 // FileExist checks for a file's existence
 func FileExist(fileName string) bool {
 	i := Internal{}
- 	// Internal logging
+	// Internal logging
 	l := "rover.log"
 	h, err := GetHostName()
 	if err != nil {
@@ -309,7 +310,7 @@ func FileExist(fileName string) bool {
 	}
 	i.HostName = h
 	p := filepath.Join(fmt.Sprintf("%s", i.HostName), "log")
-    if err := os.MkdirAll(p, os.ModePerm); err != nil {
+	if err := os.MkdirAll(p, os.ModePerm); err != nil {
 		fmt.Println(fmt.Sprintf("Cannot create log directory %s.", p))
 		os.Exit(1)
 	}
@@ -320,7 +321,7 @@ func FileExist(fileName string) bool {
 	}
 	defer f.Close()
 	w := bufio.NewWriter(f)
-    logger := hclog.New(&hclog.LoggerOptions{Name: "rover", Level: hclog.LevelFromString("INFO"), Output: w})
+	logger := hclog.New(&hclog.LoggerOptions{Name: "rover", Level: hclog.LevelFromString("INFO"), Output: w})
 	if _, err := os.Stat(fileName); !os.IsNotExist(err) {
 		logger.Info("file-exist", "file exists", fileName)
 		return true
@@ -349,7 +350,7 @@ func HTTPCmdCheck() string {
 	}
 	i.HostName = h
 	p := filepath.Join(fmt.Sprintf("%s", i.HostName), "log")
-    if err := os.MkdirAll(p, os.ModePerm); err != nil {
+	if err := os.MkdirAll(p, os.ModePerm); err != nil {
 		fmt.Println(fmt.Sprintf("Cannot create log directory %s.", p))
 		os.Exit(1)
 	}
@@ -360,7 +361,7 @@ func HTTPCmdCheck() string {
 	}
 	defer f.Close()
 	w := bufio.NewWriter(f)
-    logger := hclog.New(&hclog.LoggerOptions{Name: "rover", Level: hclog.LevelFromString("INFO"), Output: w})
+	logger := hclog.New(&hclog.LoggerOptions{Name: "rover", Level: hclog.LevelFromString("INFO"), Output: w})
 	path, err := exec.LookPath("curl")
 	if err != nil {
 		logger.Info("http-cmd-check", "curl was not found in system PATH")
@@ -390,7 +391,7 @@ func ZipIt(target string) {
 	}
 	i.HostName = h
 	p := filepath.Join(fmt.Sprintf("%s", i.HostName), "log")
-    if err := os.MkdirAll(p, os.ModePerm); err != nil {
+	if err := os.MkdirAll(p, os.ModePerm); err != nil {
 		fmt.Println(fmt.Sprintf("Cannot create log directory %s.", p))
 		os.Exit(1)
 	}
@@ -401,7 +402,7 @@ func ZipIt(target string) {
 	}
 	defer f.Close()
 	w := bufio.NewWriter(f)
-    logger := hclog.New(&hclog.LoggerOptions{Name: "rover", Level: hclog.LevelFromString("INFO"), Output: w})
+	logger := hclog.New(&hclog.LoggerOptions{Name: "rover", Level: hclog.LevelFromString("INFO"), Output: w})
 	outpath := filepath.Join(".", i.HostName)
 	err = zip.ArchiveFile("output", outpath, nil)
 	if err != nil {

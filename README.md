@@ -95,7 +95,7 @@ Available commands are:
     vault      Execute Vault related commands and store their output
 ```
 
-###  Configuration
+### Configuration
 
 Currently all configuration is specified with flags or set as environment variables. For detailed help, including available flags, use `rover <command> --help`.
 

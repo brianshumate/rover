@@ -1,3 +1,11 @@
+## v0.2.0
+
+- Complete switchover to go-hclog
+- More idiomatic use of CLI / UI package
+- Return instead of exit where possible
+- All errors and log lines updated
+- gofmt all the things
+
 ## v0.1.0
 
 - Using go-hclog for the log output

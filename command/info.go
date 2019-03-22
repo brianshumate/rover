@@ -11,7 +11,7 @@ import (
 	"strings"
 	"time"
 
-    "github.com/hashicorp/go-hclog"
+	"github.com/hashicorp/go-hclog"
 	"github.com/mitchellh/cli"
 	"github.com/ryanuber/columnize"
 )
@@ -21,7 +21,7 @@ type InfoCommand struct {
 	ConsulVersion string
 	HostName      string
 	NomadVersion  string
-	OS 			  string
+	OS            string
 	Uptime        string
 	UI            cli.Ui
 	VaultVersion  string
@@ -53,7 +53,7 @@ func (c *InfoCommand) Run(_ []string) int {
 	// Internal logging
 	l := "rover.log"
 	p := filepath.Join(fmt.Sprintf("%s", c.HostName), "log")
-    if err := os.MkdirAll(p, os.ModePerm); err != nil {
+	if err := os.MkdirAll(p, os.ModePerm); err != nil {
 		fmt.Println(fmt.Sprintf("Cannot create log directory %s.", p))
 		os.Exit(1)
 	}
@@ -64,10 +64,10 @@ func (c *InfoCommand) Run(_ []string) int {
 	}
 	defer f.Close()
 	w := bufio.NewWriter(f)
-    logger := hclog.New(&hclog.LoggerOptions{Name: "rover", Level: hclog.LevelFromString("INFO"), Output: w})
+	logger := hclog.New(&hclog.LoggerOptions{Name: "rover", Level: hclog.LevelFromString("INFO"), Output: w})
 
 	logger.Info("system", "hello from", c.HostName)
-    logger.Info("system", "detected OS", c.OS)
+	logger.Info("system", "detected OS", c.OS)
 
 	h, err := GetHostName()
 	if err != nil {
@@ -81,7 +81,7 @@ func (c *InfoCommand) Run(_ []string) int {
 	c.NomadVersion = CheckHashiVersion("nomad")
 	c.VaultVersion = CheckHashiVersion("vault")
 
-    // System data / random system factoids
+	// System data / random system factoids
 	systemData := map[string]string{"OS": runtime.GOOS,
 		"Architecture": runtime.GOARCH}
 	t := time.Now()
@@ -94,8 +94,8 @@ func (c *InfoCommand) Run(_ []string) int {
 
 	systemOut := columnize.SimpleFormat(systemCols)
 
-    // Version data for actively running binaries
-    versionData := map[string]string{}
+	// Version data for actively running binaries
+	versionData := map[string]string{}
 	if c.ConsulVersion != "" {
 		versionData["Consul version"] = c.ConsulVersion
 	}
@@ -115,16 +115,16 @@ func (c *InfoCommand) Run(_ []string) int {
 
 	versionOut := columnize.SimpleFormat(versionCols)
 
-    so := fmt.Sprintf("Basic factoids about this system:\n\n%s\n\n", systemOut)
-    vo := fmt.Sprintf("Active running versions:\n\n%s\n\n", versionOut)
+	so := fmt.Sprintf("Basic factoids about this system:\n\n%s\n\n", systemOut)
+	vo := fmt.Sprintf("Active running versions:\n\n%s\n\n", versionOut)
 
-    if versionOut == "" {
-    	out := fmt.Sprintf("%s", so)
-    	c.UI.Output(out)
-    } else {
-    	out := fmt.Sprintf("%s%s", so, vo)
-    	c.UI.Output(out)
-    }
+	if versionOut == "" {
+		out := fmt.Sprintf("%s", so)
+		c.UI.Output(out)
+	} else {
+		out := fmt.Sprintf("%s%s", so, vo)
+		c.UI.Output(out)
+	}
 
 	return 0
 }
