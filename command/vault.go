@@ -161,6 +161,8 @@ func (c *VaultCommand) Run(_ []string) int {
 				Dump("vault", "vault_syslog", "grep", "-w", "vault", "/var/log/messages")
 			}
 			if FileExist("/run/systemd/system") {
+				logger.Info("vault", "attempting to gather Vault systemd unit status")
+				Dump("vault", "systemctl_status_vault", "systemctl", "status", "vault")
 				logger.Info("vault", "attempting to gather Vault logging from systemd journal.")
 				Dump("vault", "vault_journald", "journalctl", "-b", "--no-pager", "-u", "vault")
 			}

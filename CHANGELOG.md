@@ -3,6 +3,7 @@
 - Rename archive -keep-source option to -keep-data
 - Use dep
 - Update outputs
+- Standardize on "data"
 - Update documentation
 
 ## v0.2.0

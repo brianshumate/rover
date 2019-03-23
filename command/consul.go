@@ -117,6 +117,9 @@ func (c *ConsulCommand) Run(_ []string) int {
 			"raft",
 			"list-peers")
 
+        Dump("consul", "consul_catalog_datacenters", "consul", "catalog", "datacenters")
+        Dump("consul", "consul_catalog_services", "consul", "catalog", "services")
+
 		// Consul-specific operating system tasks based on host OS ID
 		switch c.OS {
 		case Darwin:
@@ -147,7 +150,9 @@ func (c *ConsulCommand) Run(_ []string) int {
 				Dump("consul", "consul_syslog", "grep", "-w", "consul", "/var/log/messages")
 			}
 			if FileExist("/run/systemd/system") {
-				logger.Info("consul", "attempting to gather Vault logging from systemd journal.")
+				logger.Info("consul", "attempting to gather Consul systemd unit status")
+				Dump("consul", "systemctl_status_consul", "systemctl", "status", "consul")
+				logger.Info("consul", "attempting to gather Consul operational logging from systemd journal")
 				Dump("consul", "consul_journald", "journalctl", "-b", "--no-pager", "-u", "consul")
 			}
 		}

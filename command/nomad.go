@@ -131,6 +131,8 @@ func (c *NomadCommand) Run(_ []string) int {
 				Dump("nomad", "nomad_syslog", "grep", "-w", "nomad", "/var/log/messages")
 			}
 			if FileExist("/run/systemd/system") {
+				logger.Info("nomad", "attempting to gather Nomad systemd unit status")
+				Dump("nomad", "systemctl_status_nomad", "systemctl", "status", "nomad")
 				logger.Info("nomad", "attempting to gather Vault logging from systemd journal.")
 				Dump("nomad", "nomad_journald", "journalctl", "-b", "--no-pager", "-u", "nomad")
 			}

@@ -30,17 +30,15 @@ All of the stored information can then be packaged up into a zip file named for 
 
 ## Why?
 
-To assist with troubleshooting of systems and help make the process efficient, reliable, and repeatable.
-
-It reliably and quickly gathers a wealth of targeted operational configuration items and metrics which are often extremely helpful for troubleshooting systems.
+To assist with the process of gathering data for the troubleshooting of systems, and to help make the process efficient, reliable, and repeatable through automation.
 
 ## How?
 
-A CLI tool written in [Go](https://golang.org/), `rover` is a relatively small (16MB) static binary that is specifically aimed at systems running FreeBSD, Linux, or macOS for the time being.
+A CLI tool written in the [Go](https://golang.org/) programming language, `rover` is a relatively small (16MB) static binary that is specifically aimed at operation on systems running FreeBSD, Linux, or macOS.
 
 ### Running
 
-If you have a Go environment, you can install and run the `rover` command like this:
+If you have an existing Go environment, you can install and run the `rover` command like this:
 
 ```
 $ go get github.com/brianshumate/rover
@@ -59,7 +57,7 @@ Available commands are:
 
 ### Building
 
-Otherwise, you can consult the [Go documentation for the Go tools](https://golang.org/doc/install#install) for your platform (be sure it is one of the previously mentioned supported OS), and ***go*** from there!
+To establish a Go environment for building `rover`, consult the [Go documentation for the Go tools](https://golang.org/doc/install#install) for your platform (be sure it is one of the previously mentioned supported OS), and _go_ from there!
 
 If you change into the `$GOPATH/src/github.com/brianshumate/rover` directory, you can build `rover` binaries for different platforms by typing `make`.
 
@@ -105,17 +103,17 @@ Currently all configuration is specified with flags at runtime or set as environ
 
 For detailed help, including available flags, use `rover <command> --help`.
 
-Environment variables are documented in their relevant sections.
+Environment variables are documented in their relevant command sections.
 
 ## Commands
 
-`rover` is primarily concerned with gathering useful operational intelligence from an environment. It can also currently pack up that intelligence, and ship it to an S3 bucket.
+`rover` is primarily concerned with gathering useful operational data from an environment. It can also currently pack up that data, and ship it to an S3 bucket.
 
 Here are the current commands and their details.
 
 ### archive
 
-The `rover archive` command is used once you have used other commands to gather data.
+The `rover archive` command is used once you have used other `rover` commands to gather data.
 
 It expects a directory in the present working directory with the same name as the system hostname, where `rover` has previously stored command outputs which it will compress into a zip archive named in this format:
 
@@ -137,7 +135,7 @@ Data archived in rover-penguin-20190322202232.zip
 
 ### consul
 
-The `rover consul` command uses both OS tools and the `consul` binary (if found in PATH) to gather intelligence about and from the perspective of the local Consul agent.
+The `rover consul` command uses both OS tools and the `consul` binary (if found in PATH) to gather data about and from the perspective of the local Consul agent.
 
 The following unauthenticated commands are used:
 
@@ -148,6 +146,8 @@ The following commands requiring a token with sufficient capabilities are used:
 - `consul info`
 - `consul members`
 - `consul operator raft list-peers`
+- `consul catalog_datacenters`
+- `consul catalog services`
 
 If the `CONSUL_HTTP_TOKEN` environment variable is set to the value of a token with sufficient privileges, that token value will be used for the authenticated requests.
 
@@ -161,6 +161,7 @@ Finally, the `rover consul` command attempts to read and store Consul related en
 
 - `/var/log/syslog`
 - `/var/log/messages`
+- `systemctl status consul`
 - journald
 
 Example:
@@ -190,7 +191,7 @@ Vault version:   v1.1.0
 
 ### nomad
 
-The `rover nomad` command uses both OS tools and the `nomad` binary (if found in PATH) to gather intelligence about and from the perspective of the local Nomad agent.
+The `rover nomad` command uses both OS tools and the `nomad` binary (if found in PATH) to gather data about and from the perspective of the local Nomad agent.
 
 The following commands are used:
 
@@ -208,6 +209,7 @@ Finally, the `rover nomad` command attempts to read and store Nomad related entr
 
 - `/var/log/syslog`
 - `/var/log/messages`
+- `systemctl status nomad`
 - journald
 
 Example:
@@ -258,7 +260,7 @@ Success! Uploaded rover-penguin-20190322202232.zip
 
 ### vault
 
-The `rover vault` command uses both OS tools and the `vault` binary (if found in PATH) to gather intelligence about and from the perspective of the local Vault server.
+The `rover vault` command uses both OS tools and the `vault` binary (if found in PATH) to gather data about and from the perspective of the local Vault server.
 
 The following unauthenticated commands are used:
 
@@ -283,6 +285,7 @@ Finally, the `rover vault` command attempts to read and store Vault related entr
 
 - `/var/log/syslog`
 - `/var/log/messages`
+- `systemctl status vault`
 - journald
 
 Example:
