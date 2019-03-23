@@ -80,8 +80,8 @@ func (c *SystemCommand) Run(_ []string) int {
 	if err != nil {
 		log.Printf("install", "weird-error", err.Error())
 	}
-	s.Suffix = " Gathering system information, please wait ..."
-	s.FinalMSG = "Executed system related commands and stored output\n"
+	s.Suffix = " Gathering system data, please wait ..."
+	s.FinalMSG = "Gathered system data\n"
 	s.Start()
 
 	// Internal logging

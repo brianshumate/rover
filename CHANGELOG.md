@@ -1,9 +1,16 @@
+## v0.2.1
+
+- Rename archive -keep-source option to -keep-data
+- Use dep
+- Update outputs
+- Update documentation
+
 ## v0.2.0
 
 - Complete switchover to go-hclog
-- More idiomatic use of CLI / UI package
+- More idiomatic use of CLI / UI package for user output
 - Return instead of exit where possible
-- All errors and log lines updated
+- All errors and log lines/levels updated
 - gofmt all the things
 
 ## v0.1.0

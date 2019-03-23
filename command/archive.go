@@ -28,7 +28,7 @@ type ArchiveCommand struct {
 	ArchivePath string
 	HostName    string
 	OS          string
-	KeepSrc     bool
+	KeepData    bool
 	TargetFile  string
 	UI          cli.Ui
 }
@@ -41,8 +41,8 @@ Usage: rover archive
 	filename format: rover-<hostname>-<timestamp>.zip
 
 General Options:
-  -keep-source	Whether to keep the archive source directory [default: false]
-  -path		Path where archive file is written [default: "/tmp"]
+  -keep-data	Whether to keep the archive source directory [default: false]
+  -path		Path where archive file is written [default: "."]
 `
 
 	return strings.TrimSpace(helpText)
@@ -50,7 +50,13 @@ General Options:
 
 // Run command
 func (c *ArchiveCommand) Run(args []string) int {
-
+	h, err := GetHostName()
+	if err != nil {
+		out := fmt.Sprintf("Cannot get system hostname with error %v", err)
+		c.UI.Output(out)
+		return 1
+	}
+	c.HostName = h
 	// Internal logging
 	l := "rover.log"
 	p := filepath.Join(fmt.Sprintf("%s", c.HostName), "log")
@@ -75,24 +81,17 @@ func (c *ArchiveCommand) Run(args []string) int {
 	cmdFlags := flag.NewFlagSet("archive", flag.ContinueOnError)
 	cmdFlags.Usage = func() { c.UI.Output(c.Help()) }
 	cmdFlags.StringVar(&c.ArchivePath, "path", archivePathDefault, archivePathDescr)
-	cmdFlags.BoolVar(&c.KeepSrc, "keep-source", false, "Remove the zipfile source directory?")
+	cmdFlags.BoolVar(&c.KeepData, "keep-data", false, "Remove the zipfile source directory?")
 	if err := cmdFlags.Parse(args); err != nil {
 		return 1
 	}
-	h, err := GetHostName()
-	if err != nil {
-		out := fmt.Sprintf("Cannot get system hostname with error %v", err)
-		c.UI.Output(out)
-		return 1
-	}
-	c.HostName = h
 	c.TargetFile = "rover-%s-%s.zip"
 	t := time.Now().Format("20060102150405")
 	archiveFileName := fmt.Sprintf(c.TargetFile, c.HostName, t)
 
 	defer func() {
 		// Remove the source directory after zip file created
-		if !c.KeepSrc {
+		if !c.KeepData {
 			err := os.RemoveAll(c.HostName)
 			if err != nil {
 				logger.Error("cannot remove source directory with error", err.Error())
@@ -122,6 +121,7 @@ func (c *ArchiveCommand) Run(args []string) int {
 	}
 	s.Suffix = " Archiving data, please wait ..."
 	s.Start()
+
 	err = zip.ArchiveFile(fmt.Sprintf("%s", c.HostName), outPath, nil)
 	if err != nil {
 		logger.Error("cannot archive data with error", err.Error())
@@ -129,7 +129,7 @@ func (c *ArchiveCommand) Run(args []string) int {
 		c.UI.Error(out)
 		return 1
 	}
-	s.FinalMSG = fmt.Sprintf("Data archived in %s\n", outPath)
+	s.FinalMSG = fmt.Sprintf("Archived data in %s\n", outPath)
 	s.Stop()
 
 	return 0

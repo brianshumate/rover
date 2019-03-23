@@ -88,6 +88,7 @@ func (c *VaultCommand) Run(_ []string) int {
 	logger.Warn("vault", "VAULT_TOKEN length", hclog.Fmt("%v", len(c.VaultTokenValue)))
 	// Dump commands only if running Vault server process detected
 	if c.VaultPID != "" {
+		logger.Info("vault", "server process identified", c.VaultPID)
 		// Shout out to Ye Olde School BSD spinner!
 		roverSpinnerSet := []string{"/", "|", "\\", "-", "|", "\\", "-"}
 		s := spinner.New(roverSpinnerSet, 174*time.Millisecond)
@@ -96,9 +97,10 @@ func (c *VaultCommand) Run(_ []string) int {
 		if err != nil {
 			logger.Warn("vault", "weird-error", err.Error())
 		}
-		s.Suffix = " Gathering Vault information ..."
-		s.FinalMSG = "Executed Vault related commands and stored output\n"
+		s.Suffix = " Gathering Vault data ..."
+		s.FinalMSG = "Gathered Vault data\n"
 		s.Start()
+
 		c.VaultVersion = CheckHashiVersion("vault")
 		v1, err := version.NewVersion(c.VaultVersion)
 		if err != nil {
@@ -128,7 +130,8 @@ func (c *VaultCommand) Run(_ []string) int {
 			Dump("vault", "vault_auth_methods", "vault", "auth", "-methods")
 			Dump("vault", "vault_mounts", "vault", "mounts")
 		}
-		// Perform Vault-specific operating system tasks based on host OS ID
+
+		// Vault-specific operating system tasks based on host OS ID
 		switch c.OS {
 		case Darwin:
 			logger.Info("vault", "attempting to extract vault log messages from system log.")

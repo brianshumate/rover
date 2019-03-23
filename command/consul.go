@@ -91,6 +91,8 @@ func (c *ConsulCommand) Run(_ []string) int {
 	logger.Warn("vault", "CONSUL_HTTP_TOKEN length", hclog.Fmt("%v", len(c.HTTPTokenValue)))
 	// Dump commands only if a running Consul process is detected
 	if c.ConsulPID != "" {
+		logger.Info("consul", "agent process identified", c.ConsulPID)
+
 		// Shout out to Ye Olde School BSD spinner!
 		roverSpinnerSet := []string{"/", "|", "\\", "-", "|", "\\", "-"}
 		s := spinner.New(roverSpinnerSet, 174*time.Millisecond)
@@ -99,10 +101,10 @@ func (c *ConsulCommand) Run(_ []string) int {
 		if err != nil {
 			logger.Warn("consul", "weird-error", err.Error())
 		}
-		s.Suffix = " Gathering Consul information ..."
-		s.FinalMSG = "Executed Consul related commands and stored output\n"
+		s.Suffix = " Gathering Consul data ..."
+		s.FinalMSG = "Gathered Consul data\n"
 		s.Start()
-		logger.Info("consul", "agent process identified as", c.ConsulPID)
+
 		// Unauthenticated first...
 		Dump("consul", "consul_version", "consul", "version")
 		// These will fail most of the time unless running without ACL
@@ -114,7 +116,8 @@ func (c *ConsulCommand) Run(_ []string) int {
 			"operator",
 			"raft",
 			"list-peers")
-		// Perform Consul-specific operating system tasks based on host OS ID
+
+		// Consul-specific operating system tasks based on host OS ID
 		switch c.OS {
 		case Darwin:
 			logger.Info("attempt to extract consul log messages from system log (sudo required) ...")

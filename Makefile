@@ -1,4 +1,5 @@
 BINARY = rover
+DEP_REPORT= dep.report
 HST_OUT=rover_output
 VET_REPORT = vet.report
 TEST_REPORT = tests.xml
@@ -31,10 +32,10 @@ clean:
 	-rm -rf pkg
 
 errcheck:
-	if ! hash errcheck 2>/dev/null; then go get -u github.com/kisielk/errcheck; fi ; \
+	# if ! hash errcheck 2>/dev/null; then go get -u github.com/kisielk/errcheck; fi ; \
 	# this seems to be busted with anything using cgo atm (on go 1.12.1)
 	# errcheck ./...
-	echo "errcheck busted on cgo atm"
+	echo
 
 dev:	clean test vet errcheck dev-build
 
@@ -69,15 +70,20 @@ link:
 	    ln -s $${CURRENT_DIR} $${BUILD_DIR}; \
 	fi
 
+dep:
+	-cd ${BUILD_DIR}; \
+	dep ensure > ${DEP_REPORT} 2>&1 ; \
+	cd - >/dev/null
+
 test:
 	if ! hash go2xunit 2>/dev/null; then go get github.com/tebeka/go2xunit; fi
 	cd ${BUILD_DIR}; \
-	godep go test -v ./... 2>&1 | go2xunit -output ${TEST_REPORT} ; \
+	go test -v ./... 2>&1 | go2xunit -output ${TEST_REPORT} ; \
 	cd - >/dev/null
 
 vet:
 	-cd ${BUILD_DIR}; \
-	godep go vet ./... > ${VET_REPORT} 2>&1 ; \
+	go vet ./... > ${VET_REPORT} 2>&1 ; \
 	cd - >/dev/null
 
 windows:

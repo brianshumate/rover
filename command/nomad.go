@@ -83,6 +83,8 @@ func (c *NomadCommand) Run(_ []string) int {
 	}
 	// Dump commands only if running Nomad server process detected
 	if c.NomadPID != "" {
+		logger.Info("nomad", "agent process identified", c.NomadPID)
+
 		// Shout out to Ye Olde School BSD spinner!
 		roverSpinnerSet := []string{"/", "|", "\\", "-", "|", "\\", "-"}
 		s := spinner.New(roverSpinnerSet, 174*time.Millisecond)
@@ -91,13 +93,15 @@ func (c *NomadCommand) Run(_ []string) int {
 		if err != nil {
 			logger.Warn("nomad", "weird-error", err.Error())
 		}
-		s.Suffix = " Gathering Nomad information ..."
-		s.FinalMSG = "Executed Nomad related commands and stored output\n"
+		s.Suffix = " Gathering Nomad data ..."
+		s.FinalMSG = "Gathered Nomad data\n"
 		s.Start()
+
 		Dump("nomad", "nomad_status", "nomad", "status")
 		Dump("nomad", "nomad_version", "nomad", "version")
 		Dump("nomad", "nomad_operator_raft_listpeers", "nomad", "operator", "raft", "list-peers")
-		// Perform Nomad-specific operating system tasks based on host OS ID
+
+		// Nomad-specific operating system tasks based on host OS ID
 		switch c.OS {
 		case Darwin:
 			logger.Info("attempt to extract nomad log messages from system log (sudo required) ...")

@@ -36,9 +36,7 @@ It reliably and quickly gathers a wealth of targeted operational configuration i
 
 ## How?
 
-A CLI tool called `rover` that is written in [Go](https://golang.org/)
-
-`rover` is a relatively small (16MB) static binary that is specifically aimed at systems running FreeBSD, Linux, or macOS for the time being.
+A CLI tool written in [Go](https://golang.org/), `rover` is a relatively small (16MB) static binary that is specifically aimed at systems running FreeBSD, Linux, or macOS for the time being.
 
 ### Running
 
@@ -124,6 +122,11 @@ It expects a directory in the present working directory with the same name as th
 ```
 rover-[hostname]-[date-time].zip
 ```
+
+There are two optional flags:
+
+- `-keep-data`: [false] preserves the directory after successfully archiving into zip file
+- `-path` : ["."] directory path for zip file output
 
 Example:
 

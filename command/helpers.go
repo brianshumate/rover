@@ -1,5 +1,5 @@
 // helpers is the ironic junk drawer of random shared functions™
-// that is just chilling all up in your business trying to be helpful
+// that is chilling all up in your business trying to be helpful
 
 package command
 
