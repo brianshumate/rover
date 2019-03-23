@@ -21,7 +21,7 @@ The general types of information `rover` gathers include:
 
 - Operating system command output
 - Operating system logging
-- Application or service specifc command output
+- Application or service specific command output
 - Application or service specific logging
 
 All of the stored information can then be packaged up into a zip file named for the host, and shared however you prefer. Currently, `rover` directly supports shipping the zip file to an S3 bucket as well.
@@ -32,13 +32,15 @@ All of the stored information can then be packaged up into a zip file named for 
 
 To assist with troubleshooting of systems and help make the process efficient, reliable, and repeatable.
 
+It reliably and quickly gathers a wealth of targeted operational configuration items and metrics which are often extremely helpful for troubleshooting systems.
+
 ## How?
 
 A CLI tool called `rover` that is written in [Go](https://golang.org/)
 
-`rover` is a relatively small (12MB) static binary that is specifically aimed at systems running FreeBSD, Linux, and macOS for the time being.
+`rover` is a relatively small (16MB) static binary that is specifically aimed at systems running FreeBSD, Linux, or macOS for the time being.
 
-## Building
+### Running
 
 If you have a Go environment, you can install and run the `rover` command like this:
 
@@ -50,12 +52,14 @@ Usage: rover [--version] [--help] <command> [<args>]
 Available commands are:
     archive    Archive rover data into zip file
     consul     Execute Consul related commands and store output
-    info       Output installation information
+    info       Output basic system factoids
     nomad      Execute Nomad related commands and store output
     system     Execute system commands and store output
     upload     Uploads rover archive file to S3 bucket
     vault      Execute Vault related commands and store output
 ```
+
+### Building
 
 Otherwise, you can consult the [Go documentation for the Go tools](https://golang.org/doc/install#install) for your platform (be sure it is one of the previously mentioned supported OS), and ***go*** from there!
 
@@ -73,11 +77,11 @@ Binaries are located in the following subdirectories of `pkg/` after a successfu
 │       └── rover
 ```
 
-### Development Build
+#### Development Build
 
 If you'd prefer to make a development build for just your own host architecture and OS, you can use `make dev` and the `rover` binary will also be located in `./bin` after successful compiliation.
 
-## Running a Local Dev Build
+#### Running a Local Development Build
 
 It's a single binary, `rover` with built in help:
 
@@ -88,45 +92,40 @@ $ ./bin/rover
 Usage: rover [--version] [--help] <command> [<args>]
 
 Available commands are:
-    archive    Archive rover data as zip file
-    consul     Execute Consul related commands and store their output
-    nomad      Execute Nomad related commands and store their output
-    system     Execute system commands and store their output
-    vault      Execute Vault related commands and store their output
+    archive    Archive rover data into zip file
+    consul     Execute Consul related commands and store output
+    info       Output basic system factoids
+    nomad      Execute Nomad related commands and store output
+    system     Execute system commands and store output
+    upload     Uploads rover archive file to S3 bucket
+    vault      Execute Vault related commands and store output
 ```
 
-### Configuration
+## Configuration
 
-Currently all configuration is specified with flags or set as environment variables. For detailed help, including available flags, use `rover <command> --help`.
+Currently all configuration is specified with flags at runtime or set as environment variables.
 
-Here are the environment variables:
+For detailed help, including available flags, use `rover <command> --help`.
 
-- `AWS_ACCESS_KEY_ID`: Access key ID for AWS
-- `AWS_SECRET_ACCESS_KEY`: Secret access key ID for AWS
-- `AWS_BUCKET`: Name of the S3 bucket
-- `AWS_PREFIX`: Bucket prefix
-- `AWS_REGION`: AWS region for the bucket
-
-The `upload` command takes a single flag `-file` for specifying the name of the archive file.
-
-Here is an example run:
-
-```
-$ rover system && rover archive
-Executed system commands and stored output
-Data archived in rover-waves-20171028110212.zip
-
-$ rover upload -file=rover-waves-20171028110212.zip
-Success! Uploaded rover-waves-20171028110212.zip
-```
+Environment variables are documented in their relevant sections.
 
 ## Commands
 
-Rover is concerned primarily with gathering useful operational intelligence from an environment. It can also currently pack up that intelligence and ship it to an S3 bucket of your choosing. Here are the current commands and their details.
+`rover` is primarily concerned with gathering useful operational intelligence from an environment. It can also currently pack up that intelligence, and ship it to an S3 bucket.
+
+Here are the current commands and their details.
 
 ### archive
 
-The `archive` command expects a directory in the present working directory with the same name as the system hostname, where `rover` has stored command outputs which it will compress into a zip archive.
+The `rover archive` command is used once you have used other commands to gather data.
+
+It expects a directory in the present working directory with the same name as the system hostname, where `rover` has previously stored command outputs which it will compress into a zip archive named in this format:
+
+```
+rover-[hostname]-[date-time].zip
+```
+
+Example:
 
 ```
 $ rover archive
@@ -134,6 +133,39 @@ Data archived in rover-penguin-20190322202232.zip
 ```
 
 ### consul
+
+The `rover consul` command uses both OS tools and the `consul` binary (if found in PATH) to gather intelligence about and from the perspective of the local Consul agent.
+
+The following unauthenticated commands are used:
+
+- `consul version`
+
+The following commands requiring a token with sufficient capabilities are used:
+
+- `consul info`
+- `consul members`
+- `consul operator raft list-peers`
+
+If the `CONSUL_HTTP_TOKEN` environment variable is set to the value of a token with sufficient privileges, that token value will be used for the authenticated requests.
+
+In addition to these commands, `rover consul` checks and records some details from the process table on Linux hosts:
+
+- `/proc/$(pidof consul)/limits`
+- `/proc/$(pidof consul)/status`
+- `/proc/$(pidof consul)/fd`
+
+Finally, the `rover consul` command attempts to read and store Consul related entries from the system logs using the following sources:
+
+- `/var/log/syslog`
+- `/var/log/messages`
+- journald
+
+Example:
+
+```
+$ rover consul
+Executed Consul related commands and stored output
+```
 
 ### info
 
@@ -155,13 +187,124 @@ Vault version:   v1.1.0
 
 ### nomad
 
+The `rover nomad` command uses both OS tools and the `nomad` binary (if found in PATH) to gather intelligence about and from the perspective of the local Nomad agent.
+
+The following commands are used:
+
+- `nomad version`
+- `nomad status`
+- `nomad operator raft list-peers`
+
+In addition to these commands, `rover nomad` checks and records some details from the process table on Linux hosts:
+
+- `/proc/$(pidof nomad)/limits`
+- `/proc/$(pidof nomad)/status`
+- `/proc/$(pidof nomad)/fd`
+
+Finally, the `rover nomad` command attempts to read and store Nomad related entries from the system logs using the following sources:
+
+- `/var/log/syslog`
+- `/var/log/messages`
+- journald
+
+Example:
+
+```
+$ rover nomad
+Executed Nomad related commands and stored output
+```
+
 ### system
 
-The `system` command does a bit of work to determine something about the system it's been executed on, then proceeds to execute several commands (as described in the **Internals** section) and saves the output of the commands to simple text files.
+The `rover system` command does a bit of work to determine something about the system it's been executed on, then proceeds to execute several commands (as described in the **Internals** section) and saves the output of the commands to simple text files.
+
+The commands used for this are documented in detail within the **System Commands** section.
+
+Example:
+
+```
+$ rover system
+Executed system related commands and stored output
+```
 
 ### upload
 
+The `rover upload` command is used to upload an archive to an AWS S3 bucket.
+
+The command has one required flag, `-file=` for specifying the file to upload; you must also set the following environment variables to use `rover upload`:
+
+- `AWS_ACCESS_KEY_ID`
+- `AWS_SECRET_ACCESS_KEY`
+- `AWS_BUCKET`
+- `AWS_REGION`
+
+Optionally, specify a bucket prefix with:
+
+- `AWS_PREFIX`
+
+Example:
+
+```
+$ rover system && rover archive
+Executed system commands and stored output
+Data archived in rover-penguin-20190322202232.zip
+
+$ rover upload -file=rover-penguin-20190322202232.zip
+Success! Uploaded rover-penguin-20190322202232.zip
+```
+
 ### vault
+
+The `rover vault` command uses both OS tools and the `vault` binary (if found in PATH) to gather intelligence about and from the perspective of the local Vault server.
+
+The following unauthenticated commands are used:
+
+- `vault version`
+- `vault status`
+
+The following commands requiring a token with sufficient capabilities are used:
+
+- `vault audit list`
+- `vault auth list`
+- `vault secrets list`
+
+If the `VAULT_TOKEN` environment variable is set to the value of a token with sufficient privileges, that token value will be used for the authenticated requests.
+
+In addition to these commands, `rover vault` checks and records some details from the process table on Linux hosts:
+
+- `/proc/$(pidof vault)/limits`
+- `/proc/$(pidof vault)/status`
+- `/proc/$(pidof vault)/fd`
+
+Finally, the `rover vault` command attempts to read and store Vault related entries from the system logs using the following sources:
+
+- `/var/log/syslog`
+- `/var/log/messages`
+- journald
+
+Example:
+
+```
+$ rover vault
+Executed Vault related commands and stored output
+```
+
+### Command Combinations
+
+You can chain commands together to build a zip file with your desired contents like this:
+
+```
+$ rover consul && \
+  rover vault && \
+  rover system && \
+  rover archive
+Executed Consul related commands and stored output
+Executed Vault related commands and stored output
+Executed system related commands and stored output
+Data archived in rover-penguin-20190322202232.zip
+```
+
+Investigation into simplified meta commands and easy one-liners is also on the roadmap.
 
 ## Internals
 
@@ -334,6 +477,7 @@ Information from distributions which use systemd:
 
 - `nomad version`
 - `nomad status`
+- `nomad operator raft list-peers`
 
 #### Vault Commands
 
@@ -341,19 +485,6 @@ Information from distributions which use systemd:
 - `vault audit-list`
 - `vault auth -methods`
 - `vault status`
-
-#### Command Combinations
-
-You can chain commands together to build a zip file with your desired contents like this:
-
-```
-./darwin-amd64/rover consul && \
-./darwin-amd64/rover vault && \
-./darwin-amd64/rover system && \
-./darwin-amd64/rover archive
-```
-
-Investigation into simplified meta commands and easy one-liners is also on the roadmap.
 
 ## Who
 

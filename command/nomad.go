@@ -96,6 +96,7 @@ func (c *NomadCommand) Run(_ []string) int {
 		s.Start()
 		Dump("nomad", "nomad_status", "nomad", "status")
 		Dump("nomad", "nomad_version", "nomad", "version")
+		Dump("nomad", "nomad_operator_raft_listpeers", "nomad", "operator", "raft", "list-peers")
 		// Perform Nomad-specific operating system tasks based on host OS ID
 		switch c.OS {
 		case Darwin:
